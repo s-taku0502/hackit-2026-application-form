@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 type Member = { gradeClass: string; studentId: string; name: string };
 
@@ -27,6 +29,9 @@ export default function EventForm() {
     const [allergyDetail, setAllergyDetail] = useState("");
     const [teamDescription, setTeamDescription] = useState("");
     const [submitResult, setSubmitResult] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const submitEventMutation = useMutation(api.events.submitEvent);
 
     function setMemberField(idx: number, field: keyof Member, value: string) {
         const next = members.slice();
@@ -52,7 +57,7 @@ export default function EventForm() {
         return null;
     }
 
-    function onSubmit(e: React.FormEvent) {
+    async function onSubmit(e: React.FormEvent) {
         e.preventDefault();
         const err = validate();
         if (err) {
@@ -75,8 +80,16 @@ export default function EventForm() {
             submittedAt: new Date().toISOString(),
         };
 
-        console.log("EventForm submit:", collected);
-        setSubmitResult("送信されました（開発モード） — コンソールに出力しました。");
+        setIsSubmitting(true);
+        try {
+            await submitEventMutation(collected);
+            setSubmitResult("送信されました。ありがとうございます。");
+        } catch (err) {
+            console.error("submit error", err);
+            setSubmitResult("送信中にエラーが発生しました。");
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return (
@@ -334,9 +347,10 @@ export default function EventForm() {
             <div className="flex gap-4 mb-8">
                 <button
                     type="submit"
-                    className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105 shadow-lg"
+                    disabled={isSubmitting}
+                    className={`flex-1 ${isSubmitting ? "bg-amber-300 cursor-not-allowed" : "bg-amber-500 hover:bg-amber-600"} text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105 shadow-lg`}
                 >
-                    申し込みを送信
+                    {isSubmitting ? "送信中…" : "申し込みを送信"}
                 </button>
                 <button
                     type="button"
