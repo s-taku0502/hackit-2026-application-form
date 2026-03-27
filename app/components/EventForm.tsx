@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
@@ -8,6 +8,8 @@ type Member = { gradeClass: string; studentId: string; name: string };
 
 export default function EventForm() {
     const [projectName, setProjectName] = useState("");
+    const [noAffiliation, setNoAffiliation] = useState(false);
+    const prevProjectRef = useRef("");
     const [teamSize, setTeamSize] = useState<number>(3);
     const emptyMember = { gradeClass: "", studentId: "", name: "" };
     const [members, setMembers] = useState<Member[]>([
@@ -125,8 +127,29 @@ export default function EventForm() {
                         className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                         value={projectName}
                         onChange={(e) => setProjectName(e.target.value)}
+                        disabled={noAffiliation}
                         placeholder="例：データサイエンスプロジェクト"
                     />
+                    <label className="inline-flex items-center mt-2 text-amber-900">
+                        <input
+                            type="checkbox"
+                            checked={noAffiliation}
+                            onChange={(e) => {
+                                const checked = e.target.checked;
+                                if (checked) {
+                                    prevProjectRef.current = projectName;
+                                    setProjectName("無所属");
+                                    setNoAffiliation(true);
+                                } else {
+                                    setProjectName(prevProjectRef.current || "");
+                                    prevProjectRef.current = "";
+                                    setNoAffiliation(false);
+                                }
+                            }}
+                            className="w-4 h-4 mr-2 accent-amber-500"
+                        />
+                        <span>無所属</span>
+                    </label>
                 </label>
                 <label className="block">
                     <span className="block text-amber-900 font-semibold mb-2">チーム人数 <span className="text-red-500">*</span></span>
@@ -371,6 +394,8 @@ export default function EventForm() {
                     onClick={() => {
                         // reset
                         setProjectName("");
+                            setNoAffiliation(false);
+                            prevProjectRef.current = "";
                         setTeamSize(3);
                         setMembers([emptyMember, emptyMember, emptyMember, emptyMember, emptyMember]);
                         setLeaderIndex(0);
