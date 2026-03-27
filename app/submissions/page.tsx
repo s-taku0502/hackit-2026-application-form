@@ -64,7 +64,7 @@ export default function TeamsPage() {
 
     return (
         <div className="max-w-3xl mx-auto p-6 relative">
-            <h1 className="text-2xl font-bold mb-4">チーム情報登録</h1>
+            <h1 className="text-2xl font-bold mb-4">プロダクト情報登録フォーム</h1>
 
             {!authorized && (
                 <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-50">
