@@ -19,7 +19,7 @@ export default function EventForm() {
         { ...emptyMember },
         { ...emptyMember },
     ]);
-    const [leaderIndex, setLeaderIndex] = useState<number>(0);
+    const [leaderIndex, setLeaderIndex] = useState<number>(-1);
     const [leaderName, setLeaderName] = useState("");
     const [leaderEmail, setLeaderEmail] = useState("");
     const [hasFirstYear, setHasFirstYear] = useState<string>("yes");
@@ -72,6 +72,13 @@ export default function EventForm() {
         setHasFirstYear(found ? "yes" : "no");
     }, [members, teamSize]);
 
+    useEffect(() => {
+        // when team size changes, clear leader selection so all checkboxes default to false
+        setLeaderIndex(-1);
+        setLeaderName("");
+        setLeaderEmail("");
+    }, [teamSize]);
+
     function validate() {
         if (!projectName.trim()) return "所属プロジェクト名を入力してください。";
         if (![1, 3, 4, 5].includes(teamSize)) return "チーム人数を選んでください。";
@@ -108,11 +115,12 @@ export default function EventForm() {
             projectName,
             teamSize,
             members: members.slice(0, teamSize),
-            leaderIndex: leaderIndex + 1,
-            leaderName,
-            leaderEmail,
+            // for individual participation, send empty leader/team info
+            leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
+            leaderName: teamSize === 1 ? "" : leaderName,
+            leaderEmail: teamSize === 1 ? "" : leaderEmail,
             hasFirstYear,
-            teamDescription,
+            teamDescription: teamSize === 1 ? "" : teamDescription,
             agreements: { agreeCancel, agreePrivacy, agreeShare, agreeLottery },
             allergy: { hasAllergy, allergyDetail },
             submittedAt: new Date().toISOString(),
@@ -200,28 +208,30 @@ export default function EventForm() {
                     <div key={idx} className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
                         <div className="flex items-center justify-between mb-4">
                             <h4 className="font-bold text-amber-900">▼ {idx + 1}人目 <span className="text-red-500">*</span></h4>
-                            <label className="flex items-center text-amber-900">
-                                <input
-                                    type="checkbox"
-                                    checked={leaderIndex === idx}
-                                    onChange={() => {
-                                        if (leaderIndex === idx) {
-                                            // uncheck
-                                            setLeaderIndex(-1);
-                                            setLeaderName("");
-                                            setLeaderEmail("");
-                                        } else {
-                                            setLeaderIndex(idx);
-                                            if (members[idx].name) setLeaderName(members[idx].name);
-                                            const sid = members[idx].studentId?.trim();
-                                            if (sid) setLeaderEmail(`c${sid}@st.kanazawa-it.ac.jp`);
-                                            else setLeaderEmail("");
-                                        }
-                                    }}
-                                    className="w-5 h-5 mr-2 accent-amber-500"
-                                />
-                                <span>リーダーにチェック</span>
-                            </label>
+                            {teamSize !== 1 && (
+                                <label className="flex items-center text-amber-900">
+                                    <input
+                                        type="checkbox"
+                                        checked={leaderIndex === idx}
+                                        onChange={() => {
+                                            if (leaderIndex === idx) {
+                                                // uncheck
+                                                setLeaderIndex(-1);
+                                                setLeaderName("");
+                                                setLeaderEmail("");
+                                            } else {
+                                                setLeaderIndex(idx);
+                                                if (members[idx].name) setLeaderName(members[idx].name);
+                                                const sid = members[idx].studentId?.trim();
+                                                if (sid) setLeaderEmail(`c${sid}@st.kanazawa-it.ac.jp`);
+                                                else setLeaderEmail("");
+                                            }
+                                        }}
+                                        className="w-5 h-5 mr-2 accent-amber-500"
+                                    />
+                                    <span>リーダーにチェック</span>
+                                </label>
+                            )}
                         </div>
                         <label className="block mb-3">
                             <span className="block text-amber-800 font-semibold mb-2">学年・学科・クラス</span>
@@ -260,36 +270,42 @@ export default function EventForm() {
                     <span className="bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm font-bold">3</span>
                     チーム情報
                 </h3>
-                <label className="block mb-4">
-                    <span className="block text-amber-900 font-semibold mb-2">チームリーダーの名前 <span className="text-red-500">*</span></span>
-                    <input
-                        className="w-full border-2 border-amber-300 rounded-lg p-3 bg-gray-100 text-gray-700 opacity-90 cursor-not-allowed"
-                        value={leaderName}
-                        onChange={(e) => setLeaderName(e.target.value)}
-                        placeholder="チームリーダーの名前"
-                        disabled
-                    />
-                </label>
-                <label className="block mb-4">
-                    <span className="block text-amber-900 font-semibold mb-2">チームリーダーのメールアドレス <span className="text-red-500">*</span></span>
-                    <input
-                        className="w-full border-2 border-amber-300 rounded-lg p-3 bg-gray-100 text-gray-700 opacity-90 cursor-not-allowed"
-                        value={leaderEmail}
-                        onChange={(e) => setLeaderEmail(e.target.value)}
-                        placeholder="leader@example.com"
-                        disabled
-                    />
-                </label>
-                <p className="mb-4 text-amber-800">チームメンバー一覧で、該当メンバーに「リーダーにチェック」を付けてください。</p>
-                <label className="block">
-                    <span className="block text-amber-900 font-semibold mb-2">チームの説明・アイデア概要</span>
-                    <textarea
-                        className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 min-h-24"
-                        value={teamDescription}
-                        onChange={(e) => setTeamDescription(e.target.value)}
-                        placeholder="このハッカソンで実現したいアイデアや、チームの特徴を教えてください。"
-                    />
-                </label>
+                {teamSize === 1 ? (
+                    <p className="mb-4 text-amber-800">個人参加の場合は内容が表示されません</p>
+                ) : (
+                    <>
+                        <label className="block mb-4">
+                            <span className="block text-amber-900 font-semibold mb-2">チームリーダーの名前 <span className="text-red-500">*</span></span>
+                            <input
+                                className="w-full border-2 border-amber-300 rounded-lg p-3 bg-gray-100 text-gray-700 opacity-90 cursor-not-allowed"
+                                value={leaderName}
+                                onChange={(e) => setLeaderName(e.target.value)}
+                                placeholder="チームリーダーの名前"
+                                disabled
+                            />
+                        </label>
+                        <label className="block mb-4">
+                            <span className="block text-amber-900 font-semibold mb-2">チームリーダーのメールアドレス <span className="text-red-500">*</span></span>
+                            <input
+                                className="w-full border-2 border-amber-300 rounded-lg p-3 bg-gray-100 text-gray-700 opacity-90 cursor-not-allowed"
+                                value={leaderEmail}
+                                onChange={(e) => setLeaderEmail(e.target.value)}
+                                placeholder="leader@example.com"
+                                disabled
+                            />
+                        </label>
+                        <p className="mb-4 text-amber-800">チームメンバー一覧で、該当メンバーに「リーダーにチェック」を付けてください。</p>
+                        <label className="block">
+                            <span className="block text-amber-900 font-semibold mb-2">チームの説明・アイデア概要</span>
+                            <textarea
+                                className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 min-h-24"
+                                value={teamDescription}
+                                onChange={(e) => setTeamDescription(e.target.value)}
+                                placeholder="このハッカソンで実現したいアイデアや、チームの特徴を教えてください。"
+                            />
+                        </label>
+                    </>
+                )}
             </section>
 
             {/* Participation Requirements Section */}
@@ -438,7 +454,7 @@ export default function EventForm() {
                             prevProjectRef.current = "";
                         setTeamSize(3);
                         setMembers([emptyMember, emptyMember, emptyMember, emptyMember, emptyMember]);
-                        setLeaderIndex(0);
+                        setLeaderIndex(-1);
                         setLeaderName("");
                         setLeaderEmail("");
                         setHasFirstYear("yes");
