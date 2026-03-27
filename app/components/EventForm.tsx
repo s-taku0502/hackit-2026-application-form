@@ -4,14 +4,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
-type Member = { gradeClass: string; studentId: string; name: string };
+type Member = { gradeClass: string; studentId: string; familyName: string; givenName: string; furiganaFamily?: string; furiganaGiven?: string };
 
 export default function EventForm() {
     const [projectName, setProjectName] = useState("");
     const [noAffiliation, setNoAffiliation] = useState(false);
     const prevProjectRef = useRef("");
     const [teamSize, setTeamSize] = useState<number>(3);
-    const emptyMember = { gradeClass: "", studentId: "", name: "" };
+    const emptyMember = { gradeClass: "", studentId: "", familyName: "", givenName: "", furiganaFamily: "", furiganaGiven: "" };
     const [members, setMembers] = useState<Member[]>([
         { ...emptyMember },
         { ...emptyMember },
@@ -41,8 +41,10 @@ export default function EventForm() {
         next[idx] = { ...next[idx], [field]: value };
         setMembers(next);
         // keep leaderName in sync when editing the leader's member name
-        if (field === "name" && idx === leaderIndex) {
-            setLeaderName(value);
+        if ((field === "familyName" || field === "givenName") && idx === leaderIndex) {
+            const fam = field === "familyName" ? value : next[idx].familyName;
+            const giv = field === "givenName" ? value : next[idx].givenName;
+            setLeaderName(`${fam}　${giv}`.trim());
         }
         // keep leaderEmail in sync when editing the leader's studentId
         if (field === "studentId" && idx === leaderIndex) {
@@ -57,8 +59,8 @@ export default function EventForm() {
         if (leaderIndex < 0) return;
         const m = members[leaderIndex];
         if (m) {
-            if (m.name && !leaderName) {
-                setLeaderName(m.name);
+            if (m.familyName && m.givenName && !leaderName) {
+                setLeaderName(`${m.familyName}　${m.givenName}`);
             }
             if (m.studentId && !leaderEmail) {
                 setLeaderEmail(`c${m.studentId}@st.kanazawa-it.ac.jp`);
@@ -88,12 +90,17 @@ export default function EventForm() {
             const m = members[i];
             if (!m.gradeClass.trim()) return ` ${i + 1}人目の学年・学科・クラスを入力してください。`;
             if (!m.studentId.trim()) return ` ${i + 1}人目の学籍番号を入力してください。`;
-            if (!m.name.trim()) return ` ${i + 1}人目の名前を入力してください。`;
-            if (m.name.includes(" ")) return `${i + 1}人目の名前は姓名の間に空白を入れないでください。`;
+            if (!m.familyName.trim() || !m.givenName.trim()) return ` ${i + 1}人目の姓と名を入力してください。`;
+            // if any furigana part provided, require both surname and given-name furigana
+            const hasFuriFamily = (m.furiganaFamily || "").trim() !== "";
+            const hasFuriGiven = (m.furiganaGiven || "").trim() !== "";
+            if (hasFuriFamily !== hasFuriGiven) return ` ${i + 1}人目のフリガナは姓と名の両方を入力してください。`;
         }
 
         // determine effective leader name/email (support individual/open participation)
-        const effectiveLeaderName = leaderName.trim() || (leaderIndex >= 0 && members[leaderIndex]?.name) || (teamSize === 1 && members[0]?.name) || "";
+        const memberLeaderName = leaderIndex >= 0 ? (members[leaderIndex]?.familyName && members[leaderIndex]?.givenName ? `${members[leaderIndex].familyName}　${members[leaderIndex].givenName}` : "") : "";
+        const team0Name = teamSize === 1 && members[0]?.familyName && members[0]?.givenName ? `${members[0].familyName}　${members[0].givenName}` : "";
+        const effectiveLeaderName = leaderName.trim() || memberLeaderName || team0Name || "";
         const effectiveLeaderEmail = leaderEmail || (leaderIndex >= 0 && members[leaderIndex]?.studentId ? `c${members[leaderIndex].studentId}@st.kanazawa-it.ac.jp` : (teamSize === 1 && members[0]?.studentId ? `c${members[0].studentId}@st.kanazawa-it.ac.jp` : ""));
         if (!effectiveLeaderName) return "チームリーダーの名前を入力してください。";
         if (!effectiveLeaderEmail.match(/^\S+@\S+\.\S+$/)) return "有効なメールアドレスを入力してください。";
@@ -115,7 +122,12 @@ export default function EventForm() {
         const collected = {
             projectName,
             teamSize,
-            members: members.slice(0, teamSize),
+            members: members.slice(0, teamSize).map((m) => ({
+                gradeClass: m.gradeClass,
+                studentId: m.studentId,
+                name: `${m.familyName}　${m.givenName}`,
+                furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"").trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
+            })),
             // for individual participation, send empty leader/team info
             leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
             leaderName: teamSize === 1 ? "" : leaderName,
@@ -161,7 +173,12 @@ export default function EventForm() {
         const collected = {
             projectName,
             teamSize,
-            members: members.slice(0, teamSize),
+            members: members.slice(0, teamSize).map((m) => ({
+                gradeClass: m.gradeClass,
+                studentId: m.studentId,
+                name: `${m.familyName}　${m.givenName}`,
+                furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"").trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
+            })),
             leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
             leaderName: teamSize === 1 ? "" : leaderName,
             leaderEmail: teamSize === 1 ? "" : leaderEmail,
@@ -281,20 +298,23 @@ export default function EventForm() {
                                     <input
                                         type="checkbox"
                                         checked={leaderIndex === idx}
-                                        onChange={() => {
-                                            if (leaderIndex === idx) {
-                                                // uncheck
-                                                setLeaderIndex(-1);
-                                                setLeaderName("");
-                                                setLeaderEmail("");
-                                            } else {
-                                                setLeaderIndex(idx);
-                                                if (members[idx].name) setLeaderName(members[idx].name);
-                                                const sid = members[idx].studentId?.trim();
-                                                if (sid) setLeaderEmail(`c${sid}@st.kanazawa-it.ac.jp`);
-                                                else setLeaderEmail("");
-                                            }
-                                        }}
+                                                onChange={() => {
+                                                    if (leaderIndex === idx) {
+                                                        // uncheck
+                                                        setLeaderIndex(-1);
+                                                        setLeaderName("");
+                                                        setLeaderEmail("");
+                                                    } else {
+                                                        setLeaderIndex(idx);
+                                                        // combine family/given into leader name
+                                                        const fam = members[idx].familyName || "";
+                                                        const giv = members[idx].givenName || "";
+                                                        if (fam || giv) setLeaderName(`${fam}　${giv}`.trim());
+                                                        const sid = members[idx].studentId?.trim();
+                                                        if (sid) setLeaderEmail(`c${sid}@st.kanazawa-it.ac.jp`);
+                                                        else setLeaderEmail("");
+                                                    }
+                                                }}
                                         className="w-5 h-5 mr-2 accent-amber-500"
                                     />
                                     <span>リーダーにチェック</span>
@@ -320,13 +340,38 @@ export default function EventForm() {
                             />
                         </label>
                         <label className="block">
-                            <span className="block text-amber-800 font-semibold mb-2">名前（姓名の間は空白なし）</span>
-                            <input
-                                className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
-                                value={members[idx].name}
-                                onChange={(e) => setMemberField(idx, "name", e.target.value)}
-                                placeholder="例：石川太郎"
-                            />
+                            <span className="block text-amber-800 font-semibold mb-2">氏名（姓 / 名）</span>
+                            <div className="flex gap-2">
+                                <input
+                                    className="flex-1 border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                                    value={members[idx].familyName}
+                                    onChange={(e) => setMemberField(idx, "familyName", e.target.value)}
+                                    placeholder="姓 例：石川"
+                                />
+                                <input
+                                    className="flex-1 border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                                    value={members[idx].givenName}
+                                    onChange={(e) => setMemberField(idx, "givenName", e.target.value)}
+                                    placeholder="名 例：太郎"
+                                />
+                            </div>
+                            <label className="block mt-3">
+                                <span className="block text-amber-800 font-semibold mb-2">フリガナ（姓 / 名）</span>
+                                <div className="flex gap-2">
+                                    <input
+                                        className="flex-1 border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                                        value={members[idx].furiganaFamily || ""}
+                                        onChange={(e) => setMemberField(idx, "furiganaFamily", e.target.value)}
+                                        placeholder="姓 例：イシカワ"
+                                    />
+                                    <input
+                                        className="flex-1 border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                                        value={members[idx].furiganaGiven || ""}
+                                        onChange={(e) => setMemberField(idx, "furiganaGiven", e.target.value)}
+                                        placeholder="名 例：タロウ"
+                                    />
+                                </div>
+                            </label>
                         </label>
                     </div>
                 ))}
@@ -549,9 +594,9 @@ export default function EventForm() {
                             <div>
                                 <strong>メンバー:</strong>
                                 <ul className="list-disc pl-6">
-                                    {members.slice(0, teamSize).map((m, i) => (
-                                        <li key={i}>{`${i + 1}人目 — ${m.gradeClass || '—'} / ${m.studentId || '—'} / ${m.name || '—'}`}</li>
-                                    ))}
+                                            {members.slice(0, teamSize).map((m, i) => (
+                                                <li key={i}>{`${i + 1}人目 — ${m.gradeClass || '—'} / ${m.studentId || '—'} / ${(m.familyName || '—')}　${(m.givenName || '—')} / ${(m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||'').trim()}　${(m.furiganaGiven||'').trim()}` : '—'}`}</li>
+                                            ))}
                                 </ul>
                             </div>
                             <p><strong>リーダー名:</strong> {teamSize === 1 ? '（個人参加のため空）' : (leaderName || '—')}</p>
