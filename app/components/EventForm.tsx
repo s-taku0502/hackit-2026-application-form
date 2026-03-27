@@ -32,6 +32,7 @@ export default function EventForm() {
     const [teamDescription, setTeamDescription] = useState("");
     const [submitResult, setSubmitResult] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
 
     const submitEventMutation = useMutation(api.events.submitEvent);
 
@@ -130,6 +131,51 @@ export default function EventForm() {
         try {
             await submitEventMutation(collected);
             setSubmitResult("送信されました。ありがとうございます。");
+            setShowPreview(false);
+        } catch (err) {
+            console.error("submit error", err);
+            setSubmitResult("送信中にエラーが発生しました。");
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    function openPreview() {
+        const err = validate();
+        if (err) {
+            setSubmitResult(err);
+            return;
+        }
+        setShowPreview(true);
+    }
+
+    async function handleConfirmSubmit() {
+        const err = validate();
+        if (err) {
+            setSubmitResult(err);
+            setShowPreview(false);
+            return;
+        }
+
+        const collected = {
+            projectName,
+            teamSize,
+            members: members.slice(0, teamSize),
+            leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
+            leaderName: teamSize === 1 ? "" : leaderName,
+            leaderEmail: teamSize === 1 ? "" : leaderEmail,
+            hasFirstYear,
+            teamDescription: teamSize === 1 ? "" : teamDescription,
+            agreements: { agreeCancel, agreePrivacy, agreeShare, agreeLottery },
+            allergy: { hasAllergy, allergyDetail },
+            submittedAt: new Date().toISOString(),
+        };
+
+        setIsSubmitting(true);
+        try {
+            await submitEventMutation(collected);
+            setSubmitResult("送信されました。ありがとうございます。");
+            setShowPreview(false);
         } catch (err) {
             console.error("submit error", err);
             setSubmitResult("送信中にエラーが発生しました。");
@@ -438,6 +484,13 @@ export default function EventForm() {
             {/* Action Buttons */}
             <div className="flex gap-4 mb-8">
                 <button
+                    type="button"
+                    onClick={openPreview}
+                    className="flex-1 bg-white border-2 border-amber-400 text-amber-900 font-bold py-3 px-6 rounded-lg hover:bg-amber-50 transition duration-200"
+                >
+                    入力内容をプレビュー
+                </button>
+                <button
                     type="submit"
                     disabled={isSubmitting}
                     className={`flex-1 ${isSubmitting ? "bg-amber-300 cursor-not-allowed" : "bg-amber-500 hover:bg-amber-600"} text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105 shadow-lg`}
@@ -480,6 +533,44 @@ export default function EventForm() {
                         : "bg-red-100 text-red-800 border-2 border-red-400"
                 }`}>
                     {submitResult}
+                </div>
+            )}
+
+            {showPreview && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg w-11/12 max-w-2xl">
+                        <h3 className="text-xl font-bold mb-4 text-amber-900">入力内容を確認</h3>
+                        <div className="space-y-2 text-amber-900 text-sm">
+                            <p><strong>所属プロジェクト名:</strong> {projectName || '—'}</p>
+                            <p><strong>チーム人数:</strong> {teamSize}</p>
+                            <div>
+                                <strong>メンバー:</strong>
+                                <ul className="list-disc pl-6">
+                                    {members.slice(0, teamSize).map((m, i) => (
+                                        <li key={i}>{`${i + 1}人目 — ${m.gradeClass || '—'} / ${m.studentId || '—'} / ${m.name || '—'}`}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <p><strong>リーダー名:</strong> {teamSize === 1 ? '（個人参加のため空）' : (leaderName || '—')}</p>
+                            <p><strong>リーダーメール:</strong> {teamSize === 1 ? '（個人参加のため空）' : (leaderEmail || '—')}</p>
+                            <p><strong>1年生含む:</strong> {hasFirstYear === 'yes' ? 'はい' : 'いいえ'}</p>
+                            <p><strong>チーム説明:</strong> {teamSize === 1 ? '（個人参加のため表示なし）' : (teamDescription || '—')}</p>
+                            <p><strong>アレルギー:</strong> {hasAllergy === 'yes' ? allergyDetail || '詳細なし' : 'なし'}</p>
+                            <div>
+                                <strong>同意事項:</strong>
+                                <ul className="list-disc pl-6">
+                                    <li>{agreeCancel ? 'キャンセル不可に同意' : 'キャンセル不可に同意していない'}</li>
+                                    <li>{agreePrivacy ? '広報/録画に同意' : '広報/録画に同意していない'}</li>
+                                    <li>{agreeShare ? 'スポンサー共有に同意' : 'スポンサー共有に同意していない'}</li>
+                                    <li>{agreeLottery ? '抽選に同意' : '抽選に同意していない'}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button onClick={() => setShowPreview(false)} className="bg-white border-2 border-amber-400 text-amber-900 font-bold py-2 px-4 rounded-lg hover:bg-amber-50">編集する</button>
+                            <button onClick={handleConfirmSubmit} className="bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600">送信する</button>
+                        </div>
+                    </div>
                 </div>
             )}
         </form>
