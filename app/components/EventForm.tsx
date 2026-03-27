@@ -25,6 +25,7 @@ export default function EventForm() {
     const [agreeLottery, setAgreeLottery] = useState(false);
     const [hasAllergy, setHasAllergy] = useState<string>("no");
     const [allergyDetail, setAllergyDetail] = useState("");
+    const [teamDescription, setTeamDescription] = useState("");
     const [submitResult, setSubmitResult] = useState<string | null>(null);
 
     function setMemberField(idx: number, field: keyof Member, value: string) {
@@ -68,6 +69,7 @@ export default function EventForm() {
             leaderName,
             leaderEmail,
             hasFirstYear,
+            teamDescription,
             agreements: { agreeCancel, agreePrivacy, agreeShare, agreeLottery },
             allergy: { hasAllergy, allergyDetail },
             submittedAt: new Date().toISOString(),
@@ -78,24 +80,33 @@ export default function EventForm() {
     }
 
     return (
-        <form onSubmit={onSubmit} className="max-w-3xl mx-auto p-6 bg-white rounded shadow">
-            <h2 className="text-2xl font-semibold mb-4">イベント申し込みフォーム</h2>
+        <form onSubmit={onSubmit} className="w-full">
+            {/* Header Section */}
+            <div className="mb-8 text-center">
+                <h2 className="text-4xl font-bold mb-2 text-amber-900">HacKit 2026</h2>
+                <h3 className="text-2xl font-semibold mb-4 text-amber-800">イベント申し込みフォーム</h3>
+                <p className="text-amber-700 font-medium">繋がる、創る、超えていく。</p>
+            </div>
 
-            <section className="mb-6">
-                <h3 className="font-medium">■ 基本情報</h3>
-                <label className="block mt-2">
-                    所属プロジェクト名
+            {/* Basic Information Section */}
+            <section className="mb-8 bg-white bg-opacity-60 rounded-lg p-6 border-2 border-amber-200">
+                <h3 className="text-xl font-bold mb-4 text-amber-900 flex items-center">
+                    <span className="bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm font-bold">1</span>
+                    基本情報
+                </h3>
+                <label className="block mb-4">
+                    <span className="block text-amber-900 font-semibold mb-2">所属プロジェクト名 <span className="text-red-500">*</span></span>
                     <input
-                        className="mt-1 w-full border rounded p-2"
+                        className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                         value={projectName}
                         onChange={(e) => setProjectName(e.target.value)}
                         placeholder="例：データサイエンスプロジェクト"
                     />
                 </label>
-                <label className="block mt-2">
-                    チーム人数
+                <label className="block">
+                    <span className="block text-amber-900 font-semibold mb-2">チーム人数 <span className="text-red-500">*</span></span>
                     <select
-                        className="mt-1 w-32 border rounded p-2"
+                        className="border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                         value={teamSize}
                         onChange={(e) => setTeamSize(Number(e.target.value))}
                     >
@@ -106,33 +117,37 @@ export default function EventForm() {
                 </label>
             </section>
 
-            <section className="mb-6">
-                <h3 className="font-medium">■ チームメンバー情報</h3>
+            {/* Team Members Section */}
+            <section className="mb-8 bg-white bg-opacity-60 rounded-lg p-6 border-2 border-amber-200">
+                <h3 className="text-xl font-bold mb-4 text-amber-900 flex items-center">
+                    <span className="bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm font-bold">2</span>
+                    チームメンバー情報
+                </h3>
                 {Array.from({ length: teamSize }).map((_, idx) => (
-                    <div key={idx} className="border p-3 mt-3 rounded">
-                        <h4 className="font-semibold">▼{idx + 1}人目（必須）</h4>
-                        <label className="block mt-2">
-                            学年・学科・クラス
+                    <div key={idx} className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <h4 className="font-bold text-amber-900 mb-4">▼ {idx + 1}人目 <span className="text-red-500">*</span></h4>
+                        <label className="block mb-3">
+                            <span className="block text-amber-800 font-semibold mb-2">学年・学科・クラス</span>
                             <input
-                                className="mt-1 w-full border rounded p-2"
+                                className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                                 value={members[idx].gradeClass}
                                 onChange={(e) => setMemberField(idx, "gradeClass", e.target.value)}
                                 placeholder="例：3EP1"
                             />
                         </label>
-                        <label className="block mt-2">
-                            学籍番号
+                        <label className="block mb-3">
+                            <span className="block text-amber-800 font-semibold mb-2">学籍番号</span>
                             <input
-                                className="mt-1 w-full border rounded p-2"
+                                className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                                 value={members[idx].studentId}
                                 onChange={(e) => setMemberField(idx, "studentId", e.target.value)}
                                 placeholder="例：1234567"
                             />
                         </label>
-                        <label className="block mt-2">
-                            名前（姓名の間は空白なし）
+                        <label className="block">
+                            <span className="block text-amber-800 font-semibold mb-2">名前（姓名の間は空白なし）</span>
                             <input
-                                className="mt-1 w-full border rounded p-2"
+                                className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                                 value={members[idx].name}
                                 onChange={(e) => setMemberField(idx, "name", e.target.value)}
                                 placeholder="例：石川太郎"
@@ -142,30 +157,34 @@ export default function EventForm() {
                 ))}
             </section>
 
-            <section className="mb-6">
-                <h3 className="font-medium">■ チーム情報</h3>
-                <label className="block mt-2">
-                    チームリーダーの名前
+            {/* Team Information Section */}
+            <section className="mb-8 bg-white bg-opacity-60 rounded-lg p-6 border-2 border-amber-200">
+                <h3 className="text-xl font-bold mb-4 text-amber-900 flex items-center">
+                    <span className="bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm font-bold">3</span>
+                    チーム情報
+                </h3>
+                <label className="block mb-4">
+                    <span className="block text-amber-900 font-semibold mb-2">チームリーダーの名前 <span className="text-red-500">*</span></span>
                     <input
-                        className="mt-1 w-full border rounded p-2"
+                        className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                         value={leaderName}
                         onChange={(e) => setLeaderName(e.target.value)}
                         placeholder="チームリーダーの名前"
                     />
                 </label>
-                <label className="block mt-2">
-                    チームリーダーのメールアドレス
+                <label className="block mb-4">
+                    <span className="block text-amber-900 font-semibold mb-2">チームリーダーのメールアドレス <span className="text-red-500">*</span></span>
                     <input
-                        className="mt-1 w-full border rounded p-2"
+                        className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                         value={leaderEmail}
                         onChange={(e) => setLeaderEmail(e.target.value)}
                         placeholder="leader@example.com"
                     />
                 </label>
-                <label className="block mt-2">
-                    リーダーは誰ですか？
+                <label className="block mb-4">
+                    <span className="block text-amber-900 font-semibold mb-2">リーダーは誰ですか？ <span className="text-red-500">*</span></span>
                     <select
-                        className="mt-1 w-48 border rounded p-2"
+                        className="border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                         value={leaderIndex}
                         onChange={(e) => setLeaderIndex(Number(e.target.value))}
                     >
@@ -176,70 +195,152 @@ export default function EventForm() {
                         ))}
                     </select>
                 </label>
+                <label className="block">
+                    <span className="block text-amber-900 font-semibold mb-2">チームの説明・アイデア概要</span>
+                    <textarea
+                        className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 min-h-24"
+                        value={teamDescription}
+                        onChange={(e) => setTeamDescription(e.target.value)}
+                        placeholder="このハッカソンで実現したいアイデアや、チームの特徴を教えてください。"
+                    />
+                </label>
             </section>
 
-            <section className="mb-6">
-                <h3 className="font-medium">■ 参加条件</h3>
-                <div className="mt-2">
-                    チームメンバーに1年生を1人以上含んでいるか（必須）
-                    <div className="mt-1">
-                        <label className="mr-4">
+            {/* Participation Requirements Section */}
+            <section className="mb-8 bg-white bg-opacity-60 rounded-lg p-6 border-2 border-amber-200">
+                <h3 className="text-xl font-bold mb-4 text-amber-900 flex items-center">
+                    <span className="bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm font-bold">4</span>
+                    参加条件
+                </h3>
+                <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <p className="text-amber-900 font-semibold mb-3">チームメンバーに1年生を1人以上含んでいるか <span className="text-red-500">*</span></p>
+                    <div className="flex items-center gap-4">
+                        <label className="flex items-center cursor-pointer">
                             <input
                                 type="radio"
                                 name="firstYear"
                                 checked={hasFirstYear === "yes"}
                                 onChange={() => setHasFirstYear("yes")}
+                                className="w-4 h-4 accent-amber-500"
                             />
-                            はい
+                            <span className="ml-2 text-amber-900">はい</span>
+                        </label>
+                        <label className="flex items-center cursor-pointer">
+                            <input
+                                type="radio"
+                                name="firstYear"
+                                checked={hasFirstYear === "no"}
+                                onChange={() => setHasFirstYear("no")}
+                                className="w-4 h-4 accent-amber-500"
+                            />
+                            <span className="ml-2 text-amber-900">いいえ</span>
                         </label>
                     </div>
                 </div>
             </section>
 
-            <section className="mb-6">
-                <h3 className="font-medium">■ 同意事項（必須）</h3>
-                <label className="block mt-2">
-                    <input type="checkbox" checked={agreeCancel} onChange={(e) => setAgreeCancel(e.target.checked)} />
-                    一度申し込みをした場合、キャンセルすることはできない
-                </label>
-                <label className="block mt-2">
-                    <input type="checkbox" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)} />
-                    撮影した写真を広報用SNSに掲載する可能性があります。またZoomにて録音・録画する可能性があります。
-                </label>
-                <label className="block mt-2">
-                    <input type="checkbox" checked={agreeShare} onChange={(e) => setAgreeShare(e.target.checked)} />
-                    スポンサー企業様に名前とメールアドレスを共有する場合があります。
-                </label>
-                <label className="block mt-2">
-                    <input type="checkbox" checked={agreeLottery} onChange={(e) => setAgreeLottery(e.target.checked)} />
-                    申し込みチームが多数の場合、抽選となることに同意します。
-                </label>
-            </section>
-
-            <section className="mb-6">
-                <h3 className="font-medium">■ アレルギー情報</h3>
-                <div className="mt-2">
-                    食物アレルギーの有無
-                    <label className="ml-3">
-                        <input type="radio" name="allergy" checked={hasAllergy === "yes"} onChange={() => setHasAllergy("yes")} /> はい
+            {/* Agreements Section */}
+            <section className="mb-8 bg-white bg-opacity-60 rounded-lg p-6 border-2 border-amber-200">
+                <h3 className="text-xl font-bold mb-4 text-amber-900 flex items-center">
+                    <span className="bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm font-bold">5</span>
+                    同意事項
+                </h3>
+                <p className="text-amber-900 font-semibold mb-4">以下の項目すべてにチェックしてください <span className="text-red-500">*</span></p>
+                <div className="space-y-3">
+                    <label className="flex items-start cursor-pointer p-3 hover:bg-amber-100 rounded-lg transition">
+                        <input
+                            type="checkbox"
+                            checked={agreeCancel}
+                            onChange={(e) => setAgreeCancel(e.target.checked)}
+                            className="w-5 h-5 mt-1 accent-amber-500 flex-shrink-0"
+                        />
+                        <span className="ml-3 text-amber-900">一度申し込みをした場合、キャンセルすることはできない</span>
                     </label>
-                    <label className="ml-3">
-                        <input type="radio" name="allergy" checked={hasAllergy === "no"} onChange={() => setHasAllergy("no")} /> いいえ
+                    <label className="flex items-start cursor-pointer p-3 hover:bg-amber-100 rounded-lg transition">
+                        <input
+                            type="checkbox"
+                            checked={agreePrivacy}
+                            onChange={(e) => setAgreePrivacy(e.target.checked)}
+                            className="w-5 h-5 mt-1 accent-amber-500 flex-shrink-0"
+                        />
+                        <span className="ml-3 text-amber-900">撮影した写真を広報用SNSに掲載する可能性があります。またZoomにて録音・録画する可能性があります。</span>
+                    </label>
+                    <label className="flex items-start cursor-pointer p-3 hover:bg-amber-100 rounded-lg transition">
+                        <input
+                            type="checkbox"
+                            checked={agreeShare}
+                            onChange={(e) => setAgreeShare(e.target.checked)}
+                            className="w-5 h-5 mt-1 accent-amber-500 flex-shrink-0"
+                        />
+                        <span className="ml-3 text-amber-900">スポンサー企業様に名前とメールアドレスを共有する場合があります。</span>
+                    </label>
+                    <label className="flex items-start cursor-pointer p-3 hover:bg-amber-100 rounded-lg transition">
+                        <input
+                            type="checkbox"
+                            checked={agreeLottery}
+                            onChange={(e) => setAgreeLottery(e.target.checked)}
+                            className="w-5 h-5 mt-1 accent-amber-500 flex-shrink-0"
+                        />
+                        <span className="ml-3 text-amber-900">申し込みチームが多数の場合、抽選となることに同意します。</span>
                     </label>
                 </div>
+            </section>
+
+            {/* Allergy Information Section */}
+            <section className="mb-8 bg-white bg-opacity-60 rounded-lg p-6 border-2 border-amber-200">
+                <h3 className="text-xl font-bold mb-4 text-amber-900 flex items-center">
+                    <span className="bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm font-bold">6</span>
+                    アレルギー情報
+                </h3>
+                <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <p className="text-amber-900 font-semibold mb-3">食物アレルギーの有無</p>
+                    <div className="flex items-center gap-4">
+                        <label className="flex items-center cursor-pointer">
+                            <input
+                                type="radio"
+                                name="allergy"
+                                checked={hasAllergy === "yes"}
+                                onChange={() => setHasAllergy("yes")}
+                                className="w-4 h-4 accent-amber-500"
+                            />
+                            <span className="ml-2 text-amber-900">はい</span>
+                        </label>
+                        <label className="flex items-center cursor-pointer">
+                            <input
+                                type="radio"
+                                name="allergy"
+                                checked={hasAllergy === "no"}
+                                onChange={() => setHasAllergy("no")}
+                                className="w-4 h-4 accent-amber-500"
+                            />
+                            <span className="ml-2 text-amber-900">いいえ</span>
+                        </label>
+                    </div>
+                </div>
                 {hasAllergy === "yes" && (
-                    <label className="block mt-2">
-                        アレルギーのある方の名前と対象の食物（例：山田太郎（そば））
-                        <textarea className="mt-1 w-full border rounded p-2" value={allergyDetail} onChange={(e) => setAllergyDetail(e.target.value)} />
+                    <label className="block">
+                        <span className="block text-amber-900 font-semibold mb-2">アレルギーのある方の名前と対象の食物</span>
+                        <textarea
+                            className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 min-h-20"
+                            value={allergyDetail}
+                            onChange={(e) => setAllergyDetail(e.target.value)}
+                            placeholder="例：山田太郎（そば）、田中花子（卵）"
+                        />
                     </label>
                 )}
             </section>
 
-            <div className="flex items-center gap-3">
-                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">送信</button>
+            {/* Action Buttons */}
+            <div className="flex gap-4 mb-8">
+                <button
+                    type="submit"
+                    className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105 shadow-lg"
+                >
+                    申し込みを送信
+                </button>
                 <button
                     type="button"
-                    className="px-3 py-2 border rounded"
+                    className="flex-1 bg-white border-2 border-amber-400 text-amber-900 font-bold py-3 px-6 rounded-lg hover:bg-amber-50 transition duration-200"
                     onClick={() => {
                         // reset
                         setProjectName("");
@@ -255,6 +356,7 @@ export default function EventForm() {
                         setAgreeLottery(false);
                         setHasAllergy("no");
                         setAllergyDetail("");
+                        setTeamDescription("");
                         setSubmitResult(null);
                     }}
                 >
@@ -262,7 +364,16 @@ export default function EventForm() {
                 </button>
             </div>
 
-            {submitResult && <p className="mt-4 text-red-600">{submitResult}</p>}
+            {/* Result Message */}
+            {submitResult && (
+                <div className={`p-4 rounded-lg text-center font-semibold ${
+                    submitResult.includes("送信されました")
+                        ? "bg-green-100 text-green-800 border-2 border-green-400"
+                        : "bg-red-100 text-red-800 border-2 border-red-400"
+                }`}>
+                    {submitResult}
+                </div>
+            )}
         </form>
     );
 }
