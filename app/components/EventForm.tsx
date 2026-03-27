@@ -65,18 +65,30 @@ export default function EventForm() {
         }
     }, [leaderIndex, members]);
 
+    useEffect(() => {
+        // auto-detect presence of first-year members (gradeClass starting with '1')
+        const included = members.slice(0, teamSize);
+        const found = included.some((m) => m.gradeClass.trim().startsWith("1"));
+        setHasFirstYear(found ? "yes" : "no");
+    }, [members, teamSize]);
+
     function validate() {
         if (!projectName.trim()) return "所属プロジェクト名を入力してください。";
-        if (![3, 4, 5].includes(teamSize)) return "チーム人数を選んでください。";
-        for (let i = 0; i < 3; i++) {
+        if (![1, 3, 4, 5].includes(teamSize)) return "チーム人数を選んでください。";
+        const requiredMembers = teamSize === 1 ? 1 : 3;
+        for (let i = 0; i < requiredMembers; i++) {
             const m = members[i];
             if (!m.gradeClass.trim()) return ` ${i + 1}人目の学年・学科・クラスを入力してください。`;
             if (!m.studentId.trim()) return ` ${i + 1}人目の学籍番号を入力してください。`;
             if (!m.name.trim()) return ` ${i + 1}人目の名前を入力してください。`;
             if (m.name.includes(" ")) return `${i + 1}人目の名前は姓名の間に空白を入れないでください。`;
         }
-        if (!leaderName.trim()) return "チームリーダーの名前を入力してください。";
-        if (!leaderEmail.match(/^\S+@\S+\.\S+$/)) return "有効なメールアドレスを入力してください。";
+
+        // determine effective leader name/email (support individual/open participation)
+        const effectiveLeaderName = leaderName.trim() || (leaderIndex >= 0 && members[leaderIndex]?.name) || (teamSize === 1 && members[0]?.name) || "";
+        const effectiveLeaderEmail = leaderEmail || (leaderIndex >= 0 && members[leaderIndex]?.studentId ? `c${members[leaderIndex].studentId}@st.kanazawa-it.ac.jp` : (teamSize === 1 && members[0]?.studentId ? `c${members[0].studentId}@st.kanazawa-it.ac.jp` : ""));
+        if (!effectiveLeaderName) return "チームリーダーの名前を入力してください。";
+        if (!effectiveLeaderEmail.match(/^\S+@\S+\.\S+$/)) return "有効なメールアドレスを入力してください。";
         if (hasAllergy === "yes" && !allergyDetail.trim()) return "アレルギーの詳細を入力してください。";
         if (!agreeCancel || !agreePrivacy || !agreeShare || !agreeLottery)
             return "すべての同意事項にチェックしてください。";
@@ -170,6 +182,7 @@ export default function EventForm() {
                         value={teamSize}
                         onChange={(e) => setTeamSize(Number(e.target.value))}
                     >
+                        <option value={1}>個人（オープン参加）</option>
                         <option value={3}>3人</option>
                         <option value={4}>4人</option>
                         <option value={5}>5人</option>
@@ -286,25 +299,28 @@ export default function EventForm() {
                     参加条件
                 </h3>
                 <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <p className="text-amber-900 font-semibold mb-3">チームメンバーに1年生を1人以上含んでいるか <span className="text-red-500">*</span></p>
+                    <p className="text-amber-900 font-semibold mb-3">
+                        チームメンバーに1年生を1人以上含んでいるか
+                        {teamSize !== 1 && <span className="text-red-500">*</span>}
+                    </p>
                     <div className="flex items-center gap-4">
-                        <label className="flex items-center cursor-pointer">
+                        <label className="flex items-center cursor-not-allowed">
                             <input
                                 type="radio"
                                 name="firstYear"
                                 checked={hasFirstYear === "yes"}
-                                onChange={() => setHasFirstYear("yes")}
-                                className="w-4 h-4 accent-amber-500"
+                                disabled
+                                className="w-4 h-4 bg-gray-100 text-gray-700 cursor-not-allowed"
                             />
                             <span className="ml-2 text-amber-900">はい</span>
                         </label>
-                        <label className="flex items-center cursor-pointer">
+                        <label className="flex items-center cursor-not-allowed">
                             <input
                                 type="radio"
                                 name="firstYear"
                                 checked={hasFirstYear === "no"}
-                                onChange={() => setHasFirstYear("no")}
-                                className="w-4 h-4 accent-amber-500"
+                                disabled
+                                className="w-4 h-4 bg-gray-100 text-gray-700 cursor-not-allowed"
                             />
                             <span className="ml-2 text-amber-900">いいえ</span>
                         </label>
