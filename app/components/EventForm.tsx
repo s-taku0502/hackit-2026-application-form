@@ -250,19 +250,21 @@ export default function EventForm() {
                 <label className="block mb-4">
                     <span className="block text-amber-900 font-semibold mb-2">チームリーダーの名前 <span className="text-red-500">*</span></span>
                     <input
-                        className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                        className="w-full border-2 border-amber-300 rounded-lg p-3 bg-gray-100 text-gray-700 opacity-90 cursor-not-allowed"
                         value={leaderName}
                         onChange={(e) => setLeaderName(e.target.value)}
                         placeholder="チームリーダーの名前"
+                        disabled
                     />
                 </label>
                 <label className="block mb-4">
                     <span className="block text-amber-900 font-semibold mb-2">チームリーダーのメールアドレス <span className="text-red-500">*</span></span>
                     <input
-                        className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                        className="w-full border-2 border-amber-300 rounded-lg p-3 bg-gray-100 text-gray-700 opacity-90 cursor-not-allowed"
                         value={leaderEmail}
                         onChange={(e) => setLeaderEmail(e.target.value)}
                         placeholder="leader@example.com"
+                        disabled
                     />
                 </label>
                 <p className="mb-4 text-amber-800">チームメンバー一覧で、該当メンバーに「リーダーにチェック」を付けてください。</p>

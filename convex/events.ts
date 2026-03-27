@@ -6,13 +6,23 @@ export const submitEvent = mutation({
         projectName: v.string(),
         teamSize: v.number(),
         members: v.array(
-            v.object({ gradeClass: v.string(), studentId: v.string(), name: v.string() })
+            v.object({
+                gradeClass: v.string(),
+                studentId: v.string(),
+                name: v.string(),
+                attendance: v.optional(
+                    v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
+                ),
+            })
         ),
         leaderIndex: v.number(),
         leaderName: v.string(),
         leaderEmail: v.string(),
         hasFirstYear: v.string(),
         teamDescription: v.string(),
+        attendance: v.optional(
+            v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
+        ),
         agreements: v.object({
             agreeCancel: v.boolean(),
             agreePrivacy: v.boolean(),
