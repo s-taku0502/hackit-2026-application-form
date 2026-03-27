@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 export default function TeamsPage() {
     const [teamName, setTeamName] = useState("");
+    const [leaderName, setLeaderName] = useState("");
     const [githubUrl, setGithubUrl] = useState("");
     const [githubUrlBackup, setGithubUrlBackup] = useState("");
     const [publicSite, setPublicSite] = useState("");
@@ -15,12 +18,25 @@ export default function TeamsPage() {
     const [authError, setAuthError] = useState("");
     const [authLoading, setAuthLoading] = useState(false);
 
+    const submitTeamMutation = useMutation(api.events.submitTeam);
+
     function onSubmit(e: React.FormEvent) {
         e.preventDefault();
-        // 現時点ではローカルで確認表示のみ。Convexのサーバー関数があればここで呼び出します。
-        console.log({ teamName, githubUrl, githubUrlBackup, publicSite, publicSiteBackup });
-        setSubmitted(true);
+        // teams テーブルを上書きする（submitTeam はアップサート実装）
+        submitTeamMutation({
+            teamName,
+            leaderName: leaderName || undefined,
+            githubUrl: githubUrl || undefined,
+            githubUrlBackup: githubUrlBackup || undefined,
+            publicSite: publicSite || undefined,
+            publicSiteBackup: publicSiteBackup || undefined,
+            submittedAt: new Date().toISOString(),
+        })
+            .then(() => setSubmitted(true))
+            .catch((err) => console.error(err));
     }
+
+    const teams = useQuery(api.events.listTeams) || [];
 
     async function verifyKeyword(e?: React.FormEvent) {
         if (e) e.preventDefault();
@@ -84,10 +100,32 @@ export default function TeamsPage() {
             ) : (
                 <form onSubmit={onSubmit} className="space-y-4">
                     <label className="block">
-                        <span className="block font-medium">チーム名</span>
-                        <input
+                        <span className="block font-medium">チーム名（既存から選択）</span>
+                        <select
+                            className="mt-1 block w-full border rounded px-3 py-2"
                             value={teamName}
-                            onChange={(e) => setTeamName(e.target.value)}
+                            onChange={(e) => {
+                                const sel = teams.find((t: any) => t.teamName === e.target.value);
+                                setTeamName(e.target.value);
+                                if (sel) setLeaderName(sel.leaderName || "");
+                            }}
+                            disabled={!authorized}
+                            required
+                        >
+                            <option value="">-- チームを選択 --</option>
+                            {teams.map((t: any) => (
+                                <option key={t._id} value={t.teamName}>
+                                    {t.teamName}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <label className="block">
+                        <span className="block font-medium">リーダー氏名</span>
+                        <input
+                            value={leaderName}
+                            onChange={(e) => setLeaderName(e.target.value)}
                             className="mt-1 block w-full border rounded px-3 py-2"
                             required
                             disabled={!authorized}

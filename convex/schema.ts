@@ -42,6 +42,9 @@ export default defineSchema({
     }),
     teams: defineTable({
         teamName: v.string(),
+        leaderName: v.optional(v.string()),
+        leaderStudentId: v.optional(v.string()),
+        leaderEmail: v.optional(v.string()),
         githubUrl: v.optional(v.string()),
         githubUrlBackup: v.optional(v.string()),
         publicSite: v.optional(v.string()),
