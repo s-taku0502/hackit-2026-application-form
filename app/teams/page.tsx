@@ -6,7 +6,8 @@ import { api } from "../../convex/_generated/api";
 
 export default function TeamsCreatePage() {
     const [teamName, setTeamName] = useState("");
-    const [leaderName, setLeaderName] = useState("");
+    const [leaderFamilyName, setLeaderFamilyName] = useState("");
+    const [leaderGivenName, setLeaderGivenName] = useState("");
     const [leaderStudentId, setLeaderStudentId] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState("");
@@ -22,9 +23,10 @@ export default function TeamsCreatePage() {
         setError("");
         try {
             const leaderEmail = computeEmail(leaderStudentId);
+            const combinedName = `${leaderFamilyName.trim()}　${leaderGivenName.trim()}`.trim();
             await submitTeamMutation({
                 teamName,
-                leaderName: leaderName || undefined,
+                leaderName: combinedName || undefined,
                 leaderStudentId: leaderStudentId || undefined,
                 leaderEmail: leaderEmail || undefined,
                 submittedAt: new Date().toISOString(),
@@ -38,7 +40,7 @@ export default function TeamsCreatePage() {
 
     return (
         <div className="max-w-3xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-4">チーム登録名</h1>
+            <h1 className="text-2xl font-bold mb-4">チーム登録</h1>
 
             {submitted ? (
                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded">チーム情報を登録しました。</div>
@@ -54,15 +56,29 @@ export default function TeamsCreatePage() {
                         />
                     </label>
 
-                    <label className="block">
-                        <span className="block font-medium">リーダー氏名</span>
-                        <input
-                            value={leaderName}
-                            onChange={(e) => setLeaderName(e.target.value)}
-                            className="mt-1 block w-full border rounded px-3 py-2"
-                            required
-                        />
-                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <label className="block">
+                            <span className="block font-medium">リーダー姓</span>
+                            <input
+                                value={leaderFamilyName}
+                                onChange={(e) => setLeaderFamilyName(e.target.value)}
+                                className="mt-1 block w-full border rounded px-3 py-2"
+                                required
+                            />
+                        </label>
+
+                        <label className="block">
+                            <span className="block font-medium">リーダー名</span>
+                            <input
+                                value={leaderGivenName}
+                                onChange={(e) => setLeaderGivenName(e.target.value)}
+                                className="mt-1 block w-full border rounded px-3 py-2"
+                                required
+                            />
+                        </label>
+                    </div>
+
+                    <p className="text-sm text-slate-500">送信時は姓と名を空白で結合して保存します： <strong>{`${leaderFamilyName}${leaderFamilyName || leaderGivenName ? '　' : ''}${leaderGivenName}`}</strong></p>
 
                     <label className="block">
                         <span className="block font-medium">リーダー学籍番号</span>
