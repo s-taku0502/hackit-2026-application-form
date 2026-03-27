@@ -224,11 +224,11 @@ export default function EventForm() {
     }
 
     return (
-        <form onSubmit={onSubmit} className="w-full">
+        <form onSubmit={onSubmit} className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header Section */}
             <div className="mb-8 text-center">
-                <h2 className="text-4xl font-bold mb-2 text-amber-900">HacKit 2026</h2>
-                <h3 className="text-2xl font-semibold mb-4 text-amber-800">イベント申し込みフォーム</h3>
+                <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-amber-900">HacKit 2026</h2>
+                <h3 className="text-xl sm:text-2xl font-semibold mb-4 text-amber-800">イベント申し込みフォーム</h3>
                 <p className="text-amber-700 font-medium">繋がる、創る、超えていく。</p>
             </div>
 
@@ -341,7 +341,7 @@ export default function EventForm() {
                         </label>
                         <label className="block">
                             <span className="block text-amber-800 font-semibold mb-2">氏名（姓 / 名）</span>
-                            <div className="flex gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <input
                                     className="flex-1 border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                                     value={members[idx].familyName}
@@ -357,7 +357,7 @@ export default function EventForm() {
                             </div>
                             <label className="block mt-3">
                                 <span className="block text-amber-800 font-semibold mb-2">フリガナ（姓 / 名）</span>
-                                <div className="flex gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <input
                                         className="flex-1 border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                                         value={members[idx].furiganaFamily || ""}
@@ -549,24 +549,24 @@ export default function EventForm() {
             </section>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 mb-8">
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <button
                     type="button"
                     onClick={openPreview}
-                    className="flex-1 bg-white border-2 border-amber-400 text-amber-900 font-bold py-3 px-6 rounded-lg hover:bg-amber-50 transition duration-200"
+                    className="w-full sm:flex-1 bg-white border-2 border-amber-400 text-amber-900 font-bold py-3 px-6 rounded-lg hover:bg-amber-50 transition duration-200"
                 >
                     入力内容をプレビュー
                 </button>
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`flex-1 ${isSubmitting ? "bg-amber-300 cursor-not-allowed" : "bg-amber-500 hover:bg-amber-600"} text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105 shadow-lg`}
+                    className={`w-full sm:flex-1 ${isSubmitting ? "bg-amber-300 cursor-not-allowed" : "bg-amber-500 hover:bg-amber-600"} text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105 shadow-lg`}
                 >
                     {isSubmitting ? "送信中…" : "申し込みを送信"}
                 </button>
                 <button
                     type="button"
-                    className="flex-1 bg-white border-2 border-amber-400 text-amber-900 font-bold py-3 px-6 rounded-lg hover:bg-amber-50 transition duration-200"
+                    className="w-full sm:flex-1 bg-white border-2 border-amber-400 text-amber-900 font-bold py-3 px-6 rounded-lg hover:bg-amber-50 transition duration-200"
                     onClick={() => resetForm()}
                 >
                     リセット
