@@ -132,6 +132,7 @@ export default function EventForm() {
             await submitEventMutation(collected);
             setSubmitResult("送信されました。ありがとうございます。");
             setShowPreview(false);
+            resetForm({ keepSubmit: true });
         } catch (err) {
             console.error("submit error", err);
             setSubmitResult("送信中にエラーが発生しました。");
@@ -176,12 +177,33 @@ export default function EventForm() {
             await submitEventMutation(collected);
             setSubmitResult("送信されました。ありがとうございます。");
             setShowPreview(false);
+            resetForm({ keepSubmit: true });
         } catch (err) {
             console.error("submit error", err);
             setSubmitResult("送信中にエラーが発生しました。");
         } finally {
             setIsSubmitting(false);
         }
+    }
+
+    function resetForm(opts: { keepSubmit?: boolean } = {}) {
+        setProjectName("");
+        setNoAffiliation(false);
+        prevProjectRef.current = "";
+        setTeamSize(3);
+        setMembers([emptyMember, emptyMember, emptyMember, emptyMember, emptyMember]);
+        setLeaderIndex(-1);
+        setLeaderName("");
+        setLeaderEmail("");
+        setHasFirstYear("yes");
+        setAgreeCancel(false);
+        setAgreePrivacy(false);
+        setAgreeShare(false);
+        setAgreeLottery(false);
+        setHasAllergy("no");
+        setAllergyDetail("");
+        setTeamDescription("");
+        if (!opts.keepSubmit) setSubmitResult(null);
     }
 
     return (
@@ -500,26 +522,7 @@ export default function EventForm() {
                 <button
                     type="button"
                     className="flex-1 bg-white border-2 border-amber-400 text-amber-900 font-bold py-3 px-6 rounded-lg hover:bg-amber-50 transition duration-200"
-                    onClick={() => {
-                        // reset
-                        setProjectName("");
-                            setNoAffiliation(false);
-                            prevProjectRef.current = "";
-                        setTeamSize(3);
-                        setMembers([emptyMember, emptyMember, emptyMember, emptyMember, emptyMember]);
-                        setLeaderIndex(-1);
-                        setLeaderName("");
-                        setLeaderEmail("");
-                        setHasFirstYear("yes");
-                        setAgreeCancel(false);
-                        setAgreePrivacy(false);
-                        setAgreeShare(false);
-                        setAgreeLottery(false);
-                        setHasAllergy("no");
-                        setAllergyDetail("");
-                        setTeamDescription("");
-                        setSubmitResult(null);
-                    }}
+                    onClick={() => resetForm()}
                 >
                     リセット
                 </button>
