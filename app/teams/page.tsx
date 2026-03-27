@@ -38,7 +38,7 @@ export default function TeamsCreatePage() {
 
     return (
         <div className="max-w-3xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-4">チーム登録 (/teams)</h1>
+            <h1 className="text-2xl font-bold mb-4">チーム登録名</h1>
 
             {submitted ? (
                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded">チーム情報を登録しました。</div>
