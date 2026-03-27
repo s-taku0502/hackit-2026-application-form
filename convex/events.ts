@@ -38,3 +38,18 @@ export const submitEvent = mutation({
         return id;
     },
 });
+
+export const submitTeam = mutation({
+    args: {
+        teamName: v.string(),
+        githubUrl: v.optional(v.string()),
+        githubUrlBackup: v.optional(v.string()),
+        publicSite: v.optional(v.string()),
+        publicSiteBackup: v.optional(v.string()),
+        submittedAt: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const id = await ctx.db.insert("teams", args);
+        return id;
+    },
+});

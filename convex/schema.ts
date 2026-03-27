@@ -11,6 +11,13 @@ export default defineSchema({
                 studentId: v.string(),
                 name: v.string(),
                 furigana: v.optional(v.string()),
+                attendanceTimestamps: v.optional(
+                    v.object({
+                        day1: v.optional(v.string()),
+                        day2: v.optional(v.string()),
+                        day3: v.optional(v.string()),
+                    })
+                ),
                 attendance: v.optional(
                     v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
                 ),
@@ -31,6 +38,14 @@ export default defineSchema({
             agreeLottery: v.boolean(),
         }),
         allergy: v.object({ hasAllergy: v.string(), allergyDetail: v.string() }),
+        submittedAt: v.string(),
+    }),
+    teams: defineTable({
+        teamName: v.string(),
+        githubUrl: v.optional(v.string()),
+        githubUrlBackup: v.optional(v.string()),
+        publicSite: v.optional(v.string()),
+        publicSiteBackup: v.optional(v.string()),
         submittedAt: v.string(),
     }),
 });
