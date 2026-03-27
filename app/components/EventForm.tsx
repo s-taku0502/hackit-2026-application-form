@@ -43,15 +43,27 @@ export default function EventForm() {
         if (field === "name" && idx === leaderIndex) {
             setLeaderName(value);
         }
+        // keep leaderEmail in sync when editing the leader's studentId
+        if (field === "studentId" && idx === leaderIndex) {
+            const id = value.trim();
+            if (id) setLeaderEmail(`c${id}@st.kanazawa-it.ac.jp`);
+            else setLeaderEmail("");
+        }
     }
 
     useEffect(() => {
-        // when leaderIndex changes, try to populate leaderName from selected member
+        // when leaderIndex or members change, try to populate leaderName and leaderEmail from selected member
+        if (leaderIndex < 0) return;
         const m = members[leaderIndex];
-        if (m && m.name && !leaderName) {
-            setLeaderName(m.name);
+        if (m) {
+            if (m.name && !leaderName) {
+                setLeaderName(m.name);
+            }
+            if (m.studentId && !leaderEmail) {
+                setLeaderEmail(`c${m.studentId}@st.kanazawa-it.ac.jp`);
+            }
         }
-    }, [leaderIndex]);
+    }, [leaderIndex, members]);
 
     function validate() {
         if (!projectName.trim()) return "所属プロジェクト名を入力してください。";
@@ -180,8 +192,18 @@ export default function EventForm() {
                                     type="checkbox"
                                     checked={leaderIndex === idx}
                                     onChange={() => {
-                                        setLeaderIndex(idx);
-                                        if (members[idx].name) setLeaderName(members[idx].name);
+                                        if (leaderIndex === idx) {
+                                            // uncheck
+                                            setLeaderIndex(-1);
+                                            setLeaderName("");
+                                            setLeaderEmail("");
+                                        } else {
+                                            setLeaderIndex(idx);
+                                            if (members[idx].name) setLeaderName(members[idx].name);
+                                            const sid = members[idx].studentId?.trim();
+                                            if (sid) setLeaderEmail(`c${sid}@st.kanazawa-it.ac.jp`);
+                                            else setLeaderEmail("");
+                                        }
                                     }}
                                     className="w-5 h-5 mr-2 accent-amber-500"
                                 />
