@@ -107,10 +107,10 @@ export default function EventForm() {
             </section>
 
             <section className="mb-6">
-                <h3 className="font-medium">■ チームメンバー情報（1〜3人目は必須）</h3>
+                <h3 className="font-medium">■ チームメンバー情報</h3>
                 {Array.from({ length: teamSize }).map((_, idx) => (
                     <div key={idx} className="border p-3 mt-3 rounded">
-                        <h4 className="font-semibold">▼{idx + 1}人目{idx < 3 ? "（必須）" : "（任意）"}</h4>
+                        <h4 className="font-semibold">▼{idx + 1}人目（必須）</h4>
                         <label className="block mt-2">
                             学年・学科・クラス
                             <input
