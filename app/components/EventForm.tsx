@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
@@ -37,7 +37,19 @@ export default function EventForm() {
         const next = members.slice();
         next[idx] = { ...next[idx], [field]: value };
         setMembers(next);
+        // keep leaderName in sync when editing the leader's member name
+        if (field === "name" && idx === leaderIndex) {
+            setLeaderName(value);
+        }
     }
+
+    useEffect(() => {
+        // when leaderIndex changes, try to populate leaderName from selected member
+        const m = members[leaderIndex];
+        if (m && m.name && !leaderName) {
+            setLeaderName(m.name);
+        }
+    }, [leaderIndex]);
 
     function validate() {
         if (!projectName.trim()) return "所属プロジェクト名を入力してください。";
@@ -138,7 +150,21 @@ export default function EventForm() {
                 </h3>
                 {Array.from({ length: teamSize }).map((_, idx) => (
                     <div key={idx} className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
-                        <h4 className="font-bold text-amber-900 mb-4">▼ {idx + 1}人目 <span className="text-red-500">*</span></h4>
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-bold text-amber-900">▼ {idx + 1}人目 <span className="text-red-500">*</span></h4>
+                            <label className="flex items-center text-amber-900">
+                                <input
+                                    type="checkbox"
+                                    checked={leaderIndex === idx}
+                                    onChange={() => {
+                                        setLeaderIndex(idx);
+                                        if (members[idx].name) setLeaderName(members[idx].name);
+                                    }}
+                                    className="w-5 h-5 mr-2 accent-amber-500"
+                                />
+                                <span>リーダーにチェック</span>
+                            </label>
+                        </div>
                         <label className="block mb-3">
                             <span className="block text-amber-800 font-semibold mb-2">学年・学科・クラス</span>
                             <input
@@ -194,20 +220,7 @@ export default function EventForm() {
                         placeholder="leader@example.com"
                     />
                 </label>
-                <label className="block mb-4">
-                    <span className="block text-amber-900 font-semibold mb-2">リーダーは誰ですか？ <span className="text-red-500">*</span></span>
-                    <select
-                        className="border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
-                        value={leaderIndex}
-                        onChange={(e) => setLeaderIndex(Number(e.target.value))}
-                    >
-                        {Array.from({ length: teamSize }).map((_, i) => (
-                            <option key={i} value={i}>
-                                {i + 1}人目
-                            </option>
-                        ))}
-                    </select>
-                </label>
+                <p className="mb-4 text-amber-800">チームメンバー一覧で、該当メンバーに「リーダーにチェック」を付けてください。</p>
                 <label className="block">
                     <span className="block text-amber-900 font-semibold mb-2">チームの説明・アイデア概要</span>
                     <textarea
