@@ -44,6 +44,7 @@ export const submitEvent = mutation({
     },
     handler: async (ctx, args) => {
         const id = await ctx.db.insert("events", args);
+        // No automatic judgements insertion for fixed-column judgements.
         return id;
     },
 });
@@ -128,10 +129,8 @@ export const submitTeam = mutation({
     handler: async (ctx, args) => {
         // 仕様: teams テーブルを使わず、まず leaderStudentId で events を探して patch、
         // 見つからなければ teamName で events を探して patch します。teams/personal テーブルは更新しません。
-        let teamId: string | null = null;
-
-        // leaderStudentId があれば、events 側で該当メンバーを探して teamName 等を上書きする。
         let patchedEventId: string | null = null;
+
         if (args.leaderStudentId) {
             const allEvents = await ctx.db.query("events").collect();
             const matched = allEvents.find((e) =>
@@ -154,8 +153,7 @@ export const submitTeam = mutation({
             }
         }
 
-        // teams に見つからず leaderStudentId も無い／マッチしない場合、teamName で events を探して上書きする。
-        if (!teamId && !patchedEventId && args.teamName) {
+        if (!patchedEventId && args.teamName) {
             const allEvents = await ctx.db.query("events").collect();
             const matchedByTeam = allEvents.find((e) => e.teamName === args.teamName);
             if (matchedByTeam) {
@@ -173,8 +171,8 @@ export const submitTeam = mutation({
             }
         }
 
-        // 既存 teams を更新した場合はその id、そうでなければ patched event の id を返す。
-        return teamId ?? patchedEventId;
+        // patchedEventId を返す（teams テーブルは使わない設計）。
+        return patchedEventId;
     },
 });
 

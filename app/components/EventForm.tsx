@@ -207,9 +207,6 @@ export default function EventForm() {
                                 : undefined,
                     agreements: collected.agreements,
                     allergy: collected.allergy,
-                            technologies: technologiesInput
-                                ? technologiesInput.split(/[,\n]+/).map((t) => t.trim()).filter(Boolean)
-                                : undefined,
                     submittedAt: collected.submittedAt,
                 };
                 await submitPersonalMutation(personalPayload);

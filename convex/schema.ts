@@ -82,6 +82,18 @@ export default defineSchema({
         publicSiteBackup: v.optional(v.string()),
         submittedAt: v.string(),
     }),
+    judgements: defineTable({
+        // Fixed columns for judging sheet
+        judgeName: v.string(), // 審査員名
+        judgeTeamName: v.optional(v.string()), // 審査チーム名（審査員の所属チームなど）
+        productName: v.optional(v.string()), // 該当プロダクト名
+        criterion1: v.optional(v.union(v.number(), v.null())), // 評価基準1
+        criterion2: v.optional(v.union(v.number(), v.null())), // 評価基準2
+        criterion3: v.optional(v.union(v.number(), v.null())), // 評価基準3
+        note: v.optional(v.string()), // メモ
+        comments: v.optional(v.string()), // 評価コメント
+        createdAt: v.string(),
+    }),
     feedback: defineTable({
         teamName: v.string(),
         productName: v.string(),
@@ -89,8 +101,5 @@ export default defineSchema({
         score: v.optional(v.number()),
         comments: v.string(),
         submittedAt: v.string(),
-    }),
-    judgements: defineTable({
-        name: v.string(),
     }),
 });
