@@ -4,14 +4,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
-type Member = { gradeClass: string; studentId: string; familyName: string; givenName: string; furiganaFamily?: string; furiganaGiven?: string };
+type Member = { gradeClass: string; studentId: string; familyName: string; givenName: string; furiganaFamily?: string; furiganaGiven?: string; gender?: string };
 
 export default function EventForm() {
     const [projectName, setProjectName] = useState("");
     const [noAffiliation, setNoAffiliation] = useState(false);
     const prevProjectRef = useRef("");
     const [teamSize, setTeamSize] = useState<number>(3);
-    const emptyMember = { gradeClass: "", studentId: "", familyName: "", givenName: "", furiganaFamily: "", furiganaGiven: "" };
+    const emptyMember = { gradeClass: "", studentId: "", familyName: "", givenName: "", furiganaFamily: "", furiganaGiven: "", gender: "" };
     const [members, setMembers] = useState<Member[]>([
         { ...emptyMember },
         { ...emptyMember },
@@ -91,6 +91,7 @@ export default function EventForm() {
             if (!m.gradeClass.trim()) return ` ${i + 1}人目の学年・学科・クラスを入力してください。`;
             if (!m.studentId.trim()) return ` ${i + 1}人目の学籍番号を入力してください。`;
             if (!m.familyName.trim() || !m.givenName.trim()) return ` ${i + 1}人目の姓と名を入力してください。`;
+            // gender は任意項目なので必須にしない（必要ならここで検証を追加）
             // if any furigana part provided, require both surname and given-name furigana
             const hasFuriFamily = (m.furiganaFamily || "").trim() !== "";
             const hasFuriGiven = (m.furiganaGiven || "").trim() !== "";
@@ -119,14 +120,15 @@ export default function EventForm() {
         }
 
         // collect only needed members according to teamSize
-        const collected = {
+            const collected = {
             projectName,
             teamSize,
             members: members.slice(0, teamSize).map((m) => ({
                 gradeClass: m.gradeClass,
                 studentId: m.studentId,
-                name: `${m.familyName}　${m.givenName}`,
-                furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"").trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
+                    name: `${m.familyName}　${m.givenName}`,
+                    gender: m.gender || undefined,
+                    furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"").trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
             })),
             // for individual participation, send empty leader/team info
             leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
@@ -177,6 +179,7 @@ export default function EventForm() {
                 gradeClass: m.gradeClass,
                 studentId: m.studentId,
                 name: `${m.familyName}　${m.givenName}`,
+                gender: m.gender || undefined,
                 furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"").trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
             })),
             leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
@@ -372,6 +375,38 @@ export default function EventForm() {
                                     />
                                 </div>
                             </label>
+                            <div className="mt-3">
+                                <span className="block text-amber-800 font-semibold mb-2">性別（任意）</span>
+                                <div className="flex items-center gap-4">
+                                    <label className="inline-flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 mr-2 accent-amber-500"
+                                            checked={members[idx].gender === "male"}
+                                            onChange={() => setMemberField(idx, "gender", members[idx].gender === "male" ? "" : "male")}
+                                        />
+                                        <span>男性</span>
+                                    </label>
+                                    <label className="inline-flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 mr-2 accent-amber-500"
+                                            checked={members[idx].gender === "female"}
+                                            onChange={() => setMemberField(idx, "gender", members[idx].gender === "female" ? "" : "female")}
+                                        />
+                                        <span>女性</span>
+                                    </label>
+                                    <label className="inline-flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 mr-2 accent-amber-500"
+                                            checked={members[idx].gender === "other"}
+                                            onChange={() => setMemberField(idx, "gender", members[idx].gender === "other" ? "" : "other")}
+                                        />
+                                        <span>無回答・その他</span>
+                                    </label>
+                                </div>
+                            </div>
                         </label>
                     </div>
                 ))}

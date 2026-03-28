@@ -9,7 +9,8 @@ export default defineSchema({
             v.object({
                 gradeClass: v.string(),
                 studentId: v.string(),
-                name: v.string(),
+                    name: v.string(),
+                    gender: v.optional(v.string()),
                 furigana: v.optional(v.string()),
                 attendanceTimestamps: v.optional(
                     v.object({

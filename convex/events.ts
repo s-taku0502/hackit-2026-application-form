@@ -10,6 +10,7 @@ export const submitEvent = mutation({
                 gradeClass: v.string(),
                 studentId: v.string(),
                 name: v.string(),
+                    gender: v.optional(v.string()),
                 furigana: v.optional(v.string()),
                 attendance: v.optional(
                     v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
