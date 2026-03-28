@@ -6,6 +6,7 @@ import { api } from "../../convex/_generated/api";
 
 export default function TeamsPage() {
     const [teamName, setTeamName] = useState("");
+    const [mounted, setMounted] = useState(false);
     const [leaderName, setLeaderName] = useState("");
     const [productName, setProductName] = useState("");
     const [githubUrl, setGithubUrl] = useState("");
@@ -70,6 +71,7 @@ export default function TeamsPage() {
 
     useEffect(() => {
         // ページ読み込み時は特に処理なし（オーバーレイで入力を促す）
+        setMounted(true);
     }, []);
 
     return (
@@ -120,7 +122,7 @@ export default function TeamsPage() {
                                 setTeamName(e.target.value);
                                 if (sel) {
                                     setLeaderName(sel.leaderName || "");
-                                    setProductName(sel.projectName || sel.productName || "");
+                                    setProductName(sel.productName || "");
                                     setGithubUrl(sel.githubUrl || "");
                                     setGithubUrlBackup(sel.githubUrlBackup || "");
                                     setPublicSite(sel.publicSite || "");
@@ -131,11 +133,11 @@ export default function TeamsPage() {
                             required
                         >
                             <option value="">-- チームを選択 --</option>
-                            {teams.map((t: any) => (
-                                <option key={t._id} value={t.teamName}>
-                                    {t.teamName}
-                                </option>
-                            ))}
+                                {mounted && teams.map((t: any) => (
+                                    <option key={t._id} value={t.teamName}>
+                                        {t.teamName}
+                                    </option>
+                                ))}
                         </select>
                     </label>
 
