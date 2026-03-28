@@ -76,3 +76,17 @@ export const listTeams = query({
         return await ctx.db.query("teams").collect();
     },
 });
+
+export const teamsWithDetails = query({
+    handler: async (ctx) => {
+        const teams = await ctx.db.query("teams").collect();
+        const events = await ctx.db.query("events").collect();
+        // Join teams with any event that matches on leaderEmail (best-effort link).
+        return teams.map((team) => {
+            const matchedEvent = events.find(
+                (e) => e.leaderEmail && team.leaderEmail && e.leaderEmail === team.leaderEmail
+            );
+            return { ...team, event: matchedEvent || null };
+        });
+    },
+});

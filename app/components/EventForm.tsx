@@ -130,10 +130,10 @@ export default function EventForm() {
                     gender: m.gender || undefined,
                     furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"").trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
             })),
-            // for individual participation, send empty leader/team info
+            // for individual participation, derive leader info from the sole member
             leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
-            leaderName: teamSize === 1 ? "" : leaderName,
-            leaderEmail: teamSize === 1 ? "" : leaderEmail,
+            leaderName: teamSize === 1 ? `${members[0]?.familyName || ""}　${members[0]?.givenName || ""}`.trim() : leaderName,
+            leaderEmail: teamSize === 1 ? (members[0]?.studentId ? `c${members[0].studentId}@st.kanazawa-it.ac.jp` : "") : leaderEmail,
             hasFirstYear,
             teamDescription: teamSize === 1 ? "" : teamDescription,
             agreements: { agreeCancel, agreePrivacy, agreeShare, agreeLottery },
@@ -183,8 +183,8 @@ export default function EventForm() {
                 furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"").trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
             })),
             leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
-            leaderName: teamSize === 1 ? "" : leaderName,
-            leaderEmail: teamSize === 1 ? "" : leaderEmail,
+            leaderName: teamSize === 1 ? `${members[0]?.familyName || ""}　${members[0]?.givenName || ""}`.trim() : leaderName,
+            leaderEmail: teamSize === 1 ? (members[0]?.studentId ? `c${members[0].studentId}@st.kanazawa-it.ac.jp` : "") : leaderEmail,
             hasFirstYear,
             teamDescription: teamSize === 1 ? "" : teamDescription,
             agreements: { agreeCancel, agreePrivacy, agreeShare, agreeLottery },
@@ -634,8 +634,8 @@ export default function EventForm() {
                                             ))}
                                 </ul>
                             </div>
-                            <p><strong>リーダー名:</strong> {teamSize === 1 ? '（個人参加のため空）' : (leaderName || '—')}</p>
-                            <p><strong>リーダーメール:</strong> {teamSize === 1 ? '（個人参加のため空）' : (leaderEmail || '—')}</p>
+                            <p><strong>リーダー名:</strong> {teamSize === 1 ? ((members[0]?.familyName || members[0]?.givenName) ? `${members[0]?.familyName || ''}　${members[0]?.givenName || ''}`.trim() : '—') : (leaderName || '—')}</p>
+                            <p><strong>リーダーメール:</strong> {teamSize === 1 ? (members[0]?.studentId ? `c${members[0].studentId}@st.kanazawa-it.ac.jp` : '—') : (leaderEmail || '—')}</p>
                             <p><strong>1年生含む:</strong> {hasFirstYear === 'yes' ? 'はい' : 'いいえ'}</p>
                             <p><strong>チーム説明:</strong> {teamSize === 1 ? '（個人参加のため表示なし）' : (teamDescription || '—')}</p>
                             <p><strong>アレルギー:</strong> {hasAllergy === 'yes' ? allergyDetail || '詳細なし' : 'なし'}</p>
