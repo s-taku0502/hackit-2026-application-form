@@ -87,10 +87,10 @@ export default function EventForm() {
         if (![1, 3, 4, 5].includes(teamSize)) return "チーム人数を選んでください。";
         // require all members' info when team has 3 or more members
         const requiredMembers = teamSize === 1 ? 1 : teamSize;
-        for (let i = 0; i < requiredMembers; i++) {
+            for (let i = 0; i < requiredMembers; i++) {
             const m = members[i];
             if (!m.gradeClass.trim()) return ` ${i + 1}人目の学年・学科・クラスを入力してください。`;
-            if (!m.studentId.trim()) return ` ${i + 1}人目の学籍番号を入力してください。`;
+            if (!/^\d{7}$/.test((m.studentId || "").trim())) return ` ${i + 1}人目の学籍番号は半角数字7桁で入力してください。`;
             if (!m.familyName.trim() || !m.givenName.trim()) return ` ${i + 1}人目の姓と名を入力してください。`;
             // gender は任意項目なので必須にしない（必要ならここで検証を追加）
             // if any furigana part provided, require both surname and given-name furigana
@@ -340,8 +340,11 @@ export default function EventForm() {
                             <input
                                 className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                                 value={members[idx].studentId}
-                                onChange={(e) => setMemberField(idx, "studentId", e.target.value)}
+                                onChange={(e) => setMemberField(idx, "studentId", e.target.value.replace(/\D/g, "").slice(0, 7))}
                                 placeholder="例：1234567"
+                                inputMode="numeric"
+                                pattern="\d{7}"
+                                maxLength={7}
                             />
                         </label>
                         <label className="block">
