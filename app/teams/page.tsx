@@ -122,7 +122,6 @@ export default function TeamsCreatePage() {
                             <li key={t._id} className="p-3 border rounded bg-white">
                                 <div className="font-semibold">{t.teamName}</div>
                                 <div className="text-sm text-slate-600">リーダー: {t.leaderName || "-"}</div>
-                                {t.productName && <div className="text-sm text-slate-600">プロダクト: {t.productName}</div>}
                             </li>
                         ))}
                     </ul>
