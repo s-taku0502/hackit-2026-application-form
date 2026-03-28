@@ -24,11 +24,12 @@ export default function TeamsCreatePage() {
         try {
             const leaderEmail = computeEmail(leaderStudentId);
             const combinedName = `${leaderFamilyName.trim()}　${leaderGivenName.trim()}`.trim();
+            // Map team registration to the events.submitEvent shape expected by Convex.
             await submitTeamMutation({
-                teamName,
-                leaderName: combinedName || undefined,
-                leaderStudentId: leaderStudentId || undefined,
-                leaderEmail: leaderEmail || undefined,
+                teamName: teamName || "",
+                leaderName: combinedName || "",
+                leaderStudentId: leaderStudentId || "",
+                leaderEmail: leaderEmail || "",
                 submittedAt: new Date().toISOString(),
             });
             setSubmitted(true);

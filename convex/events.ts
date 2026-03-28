@@ -22,6 +22,7 @@ export const submitEvent = mutation({
         leaderEmail: v.string(),
         hasFirstYear: v.string(),
         teamDescription: v.string(),
+        teamName: v.optional(v.string()),
         attendance: v.optional(
             v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
         ),
@@ -54,14 +55,37 @@ export const submitTeam = mutation({
     },
     handler: async (ctx, args) => {
         // Upsert by `teamName`: 上書きする場合は既存ドキュメントを更新、なければ挿入。
+        // 仕様変更: 新規 `teams` ドキュメントは作成しない。既存の `teams` が見つかれば上書き、
+        // 見つからなければ `events` テーブルの既存レコードの `teamName` を上書きする。
         const allTeams = await ctx.db.query("teams").collect();
         const existing = allTeams.find((t) => t.teamName === args.teamName);
+        let teamId: string | null = null;
         if (existing) {
             await ctx.db.patch(existing._id, args);
-            return existing._id;
+            teamId = existing._id;
         }
-        const id = await ctx.db.insert("teams", args);
-        return id;
+
+        // leaderStudentId があれば、events 側で該当メンバーを探して teamName 等を上書きする。
+        let patchedEventId: string | null = null;
+        if (args.leaderStudentId) {
+            const allEvents = await ctx.db.query("events").collect();
+            const matched = allEvents.find((e) =>
+                Array.isArray(e.members) && e.members.some((m) => m.studentId === args.leaderStudentId)
+            );
+            if (matched) {
+                const patchData: Record<string, any> = {};
+                if (args.teamName) patchData.teamName = args.teamName;
+                if (args.leaderName) patchData.leaderName = args.leaderName;
+                if (args.leaderEmail) patchData.leaderEmail = args.leaderEmail;
+                if (Object.keys(patchData).length > 0) {
+                    await ctx.db.patch(matched._id, patchData);
+                    patchedEventId = matched._id;
+                }
+            }
+        }
+
+        // 既存 teams を更新した場合はその id、そうでなければ patched event の id を返す。
+        return teamId ?? patchedEventId;
     },
 });
 
