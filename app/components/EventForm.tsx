@@ -85,7 +85,8 @@ export default function EventForm() {
     function validate() {
         if (!projectName.trim()) return "所属プロジェクト名を入力してください。";
         if (![1, 3, 4, 5].includes(teamSize)) return "チーム人数を選んでください。";
-        const requiredMembers = teamSize === 1 ? 1 : 3;
+        // require all members' info when team has 3 or more members
+        const requiredMembers = teamSize === 1 ? 1 : teamSize;
         for (let i = 0; i < requiredMembers; i++) {
             const m = members[i];
             if (!m.gradeClass.trim()) return ` ${i + 1}人目の学年・学科・クラスを入力してください。`;
@@ -270,6 +271,7 @@ export default function EventForm() {
                         />
                         <span>無所属</span>
                     </label>
+                    <p className="text-sm text-amber-700 mt-2">混合チームの場合、それぞれが個別に申し込んでください。</p>
                 </label>
                 <label className="block">
                     <span className="block text-amber-900 font-semibold mb-2">チーム人数 <span className="text-red-500">*</span></span>
