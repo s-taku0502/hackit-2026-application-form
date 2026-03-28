@@ -38,7 +38,7 @@ Mark the field optional first, migrate data to remove it, then remove from schem
 
 // Migration
 export const removeIsPro = migrations.define({
-  table: "teams",
+  table: "personal",
   migrateOne: async (ctx, team) => {
     if (team.isPro !== undefined) {
       await ctx.db.patch(team._id, { isPro: undefined });
@@ -59,7 +59,7 @@ Prefer creating a new field. You can combine adding and deleting in one migratio
 
 // Migration: convert old field to new field
 export const convertToEnum = migrations.define({
-  table: "teams",
+  table: "personal",
   migrateOne: async (ctx, team) => {
     if (team.plan === undefined) {
       await ctx.db.patch(team._id, {
@@ -138,7 +138,7 @@ This is preferred because you can safely roll back at any point, the old format 
 export const createTeam = mutation({
   args: { name: v.string(), isPro: v.boolean() },
   handler: async (ctx, args) => {
-    await ctx.db.insert("teams", {
+    await ctx.db.insert("personal", {
       name: args.name,
       plan: args.isPro ? "pro" : "basic",
     });
@@ -150,7 +150,7 @@ export const createTeam = mutation({
   args: { name: v.string(), isPro: v.boolean() },
   handler: async (ctx, args) => {
     const plan = args.isPro ? "pro" : "basic";
-    await ctx.db.insert("teams", {
+    await ctx.db.insert("personal", {
       name: args.name,
       isPro: args.isPro,
       plan,
@@ -171,7 +171,7 @@ This avoids duplicating writes, which is useful when having two copies of data c
 
 ```typescript
 // Good: reading both formats, preferring new
-function getTeamPlan(team: Doc<"teams">): "basic" | "pro" {
+function getTeamPlan(team: Doc<"personal">): "basic" | "pro" {
   if (team.plan !== undefined) return team.plan;
   return team.isPro ? "pro" : "basic";
 }

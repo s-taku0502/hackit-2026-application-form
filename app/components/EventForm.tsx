@@ -4,14 +4,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
-type Member = { gradeClass: string; studentId: string; familyName: string; givenName: string; furiganaFamily?: string; furiganaGiven?: string; gender?: string };
+type Member = { gradeClass: string; studentId: string; familyName: string; givenName: string; furiganaFamily?: string; furiganaGiven?: string; gender?: string; githubUrl?: string };
 
 export default function EventForm() {
     const [projectName, setProjectName] = useState("");
     const [noAffiliation, setNoAffiliation] = useState(false);
     const prevProjectRef = useRef("");
     const [teamSize, setTeamSize] = useState<number>(3);
-    const emptyMember = { gradeClass: "", studentId: "", familyName: "", givenName: "", furiganaFamily: "", furiganaGiven: "", gender: "" };
+    const emptyMember = { gradeClass: "", studentId: "", familyName: "", givenName: "", furiganaFamily: "", furiganaGiven: "", gender: "", githubUrl: "https://github.com/" };
     const [members, setMembers] = useState<Member[]>([
         { ...emptyMember },
         { ...emptyMember },
@@ -32,12 +32,16 @@ export default function EventForm() {
     const [agreeLottery, setAgreeLottery] = useState(false);
     const [hasAllergy, setHasAllergy] = useState<string>("no");
     const [allergyDetail, setAllergyDetail] = useState("");
+    const [hasHackathonExperience, setHasHackathonExperience] = useState<string>("no");
+    const [experienceDetail, setExperienceDetail] = useState("");
+    const [technologiesInput, setTechnologiesInput] = useState("");
     const [teamDescription, setTeamDescription] = useState("");
     const [submitResult, setSubmitResult] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
 
     const submitEventMutation = useMutation(api.events.submitEvent);
+    const submitPersonalMutation = useMutation(api.events.submitPersonal);
 
     function setMemberField(idx: number, field: keyof Member, value: string) {
         const next = members.slice();
@@ -164,12 +168,13 @@ export default function EventForm() {
             const collected = {
             projectName,
             teamSize,
-            members: members.slice(0, teamSize).map((m) => ({
+                members: members.slice(0, teamSize).map((m) => ({
                 gradeClass: m.gradeClass,
                 studentId: m.studentId,
                     name: `${m.familyName}　${m.givenName}`,
                     gender: m.gender || undefined,
-                    furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"").trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
+                    furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"" ).trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
+                    githubUrl: m.githubUrl || undefined,
             })),
             // for individual participation, derive leader info from the sole member
             leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
@@ -184,7 +189,33 @@ export default function EventForm() {
 
         setIsSubmitting(true);
         try {
-            await submitEventMutation(collected);
+            if (teamSize === 1) {
+                const m = collected.members[0];
+                const personalPayload = {
+                    projectName: collected.projectName,
+                    gradeClass: m.gradeClass,
+                    studentId: m.studentId,
+                    name: m.name,
+                    furigana: m.furigana,
+                    gender: m.gender,
+                    leaderName: collected.leaderName,
+                    leaderEmail: collected.leaderEmail,
+                            hasHackathonExperience: hasHackathonExperience,
+                            experienceDetail: experienceDetail,
+                            technologies: technologiesInput
+                                ? technologiesInput.split(/[,\n]+/).map((t) => t.trim()).filter(Boolean)
+                                : undefined,
+                    agreements: collected.agreements,
+                    allergy: collected.allergy,
+                            technologies: technologiesInput
+                                ? technologiesInput.split(/[,\n]+/).map((t) => t.trim()).filter(Boolean)
+                                : undefined,
+                    submittedAt: collected.submittedAt,
+                };
+                await submitPersonalMutation(personalPayload);
+            } else {
+                await submitEventMutation(collected);
+            }
             setSubmitResult("送信されました。ありがとうございます。");
             setShowPreview(false);
             resetForm({ keepSubmit: true });
@@ -222,6 +253,7 @@ export default function EventForm() {
                 name: `${m.familyName}　${m.givenName}`,
                 gender: m.gender || undefined,
                 furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"").trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
+                githubUrl: m.githubUrl || undefined,
             })),
             leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
             leaderName: teamSize === 1 ? `${members[0]?.familyName || ""}　${members[0]?.givenName || ""}`.trim() : leaderName,
@@ -235,7 +267,27 @@ export default function EventForm() {
 
         setIsSubmitting(true);
         try {
-            await submitEventMutation(collected);
+            if (teamSize === 1) {
+                const m = collected.members[0];
+                const personalPayload = {
+                    projectName: collected.projectName,
+                    gradeClass: m.gradeClass,
+                    studentId: m.studentId,
+                    name: m.name,
+                    furigana: m.furigana,
+                    gender: m.gender,
+                    leaderName: collected.leaderName,
+                    leaderEmail: collected.leaderEmail,
+                            hasHackathonExperience: hasHackathonExperience,
+                            experienceDetail: experienceDetail,
+                    agreements: collected.agreements,
+                    allergy: collected.allergy,
+                    submittedAt: collected.submittedAt,
+                };
+                await submitPersonalMutation(personalPayload);
+            } else {
+                await submitEventMutation(collected);
+            }
             setSubmitResult("送信されました。ありがとうございます。");
             setShowPreview(false);
             resetForm({ keepSubmit: true });
@@ -264,6 +316,9 @@ export default function EventForm() {
         setHasAllergy("no");
         setAllergyDetail("");
         setTeamDescription("");
+        setHasHackathonExperience("no");
+        setExperienceDetail("");
+        setTechnologiesInput("");
         if (!opts.keepSubmit) setSubmitResult(null);
     }
 
@@ -420,6 +475,15 @@ export default function EventForm() {
                                     />
                                 </div>
                             </label>
+                            <label className="block mt-3">
+                                <span className="block text-amber-800 font-semibold mb-2">GitHub URL（任意）</span>
+                                <input
+                                    className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                                    value={members[idx].githubUrl || ""}
+                                    onChange={(e) => setMemberField(idx, "githubUrl", e.target.value)}
+                                    placeholder="例：https://github.com/username"
+                                />
+                            </label>
                             <div className="mt-3">
                                 <span className="block text-amber-800 font-semibold mb-2">性別（任意）</span>
                                 <div className="flex items-center gap-4">
@@ -464,7 +528,54 @@ export default function EventForm() {
                     チーム情報
                 </h3>
                 {teamSize === 1 ? (
-                    <p className="mb-4 text-amber-800">個人参加の場合は内容が表示されません</p>
+                    <>
+                        <p className="mb-4 text-amber-800">個人参加の場合は以下の項目を入力してください。</p>
+                        <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                            <p className="text-amber-900 font-semibold mb-2">ハッカソン経験の有無</p>
+                            <div className="flex items-center gap-4">
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        name="hackExp"
+                                        checked={hasHackathonExperience === "yes"}
+                                        onChange={() => setHasHackathonExperience("yes")}
+                                        className="w-4 h-4 accent-amber-500"
+                                    />
+                                    <span className="ml-2 text-amber-900">あり</span>
+                                </label>
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        name="hackExp"
+                                        checked={hasHackathonExperience === "no"}
+                                        onChange={() => setHasHackathonExperience("no")}
+                                        className="w-4 h-4 accent-amber-500"
+                                    />
+                                    <span className="ml-2 text-amber-900">なし</span>
+                                </label>
+                            </div>
+                            {hasHackathonExperience === "yes" && (
+                                <label className="block mt-3">
+                                    <span className="block text-amber-900 font-semibold mb-2">ご経験の内容（自由記述）</span>
+                                    <textarea
+                                        className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 min-h-20"
+                                        value={experienceDetail}
+                                        onChange={(e) => setExperienceDetail(e.target.value)}
+                                        placeholder="過去のハッカソン参加経験、担当した役割、成果などをご記入ください。"
+                                    />
+                                </label>
+                            )}
+                            <label className="block mt-3">
+                                <span className="block text-amber-900 font-semibold mb-2">触ったことのある技術（カンマ区切りで複数可）</span>
+                                <textarea
+                                    className="w-full border-2 border-amber-300 rounded-lg p-3 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 min-h-20"
+                                    value={technologiesInput}
+                                    onChange={(e) => setTechnologiesInput(e.target.value)}
+                                    placeholder="例：React, Node.js, Python, Firebase"
+                                />
+                            </label>
+                        </div>
+                    </>
                 ) : (
                     <>
                         <label className="block mb-4">
@@ -675,13 +786,20 @@ export default function EventForm() {
                                 <strong>メンバー:</strong>
                                 <ul className="list-disc pl-6">
                                             {members.slice(0, teamSize).map((m, i) => (
-                                                <li key={i}>{`${i + 1}人目 — ${m.gradeClass || '—'} / ${m.studentId || '—'} / ${(m.familyName || '—')}　${(m.givenName || '—')} / ${(m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||'').trim()}　${(m.furiganaGiven||'').trim()}` : '—'}`}</li>
+                                                <li key={i}>{`${i + 1}人目 — ${m.gradeClass || '—'} / ${m.studentId || '—'} / ${(m.familyName || '—')}　${(m.givenName || '—')} / ${(m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||'').trim()}　${(m.furiganaGiven||'').trim()}` : '—'} / ${m.githubUrl || '—'}`}</li>
                                             ))}
                                 </ul>
                             </div>
                             <p><strong>リーダー名:</strong> {teamSize === 1 ? ((members[0]?.familyName || members[0]?.givenName) ? `${members[0]?.familyName || ''}　${members[0]?.givenName || ''}`.trim() : '—') : (leaderName || '—')}</p>
                             <p><strong>リーダーメール:</strong> {teamSize === 1 ? (members[0]?.studentId ? `c${members[0].studentId}@st.kanazawa-it.ac.jp` : '—') : (leaderEmail || '—')}</p>
                             <p><strong>1年生含む:</strong> {hasFirstYear === 'yes' ? 'はい' : 'いいえ'}</p>
+                            {teamSize === 1 && (
+                                <>
+                                    <p><strong>ハッカソン経験:</strong> {hasHackathonExperience === 'yes' ? 'あり' : 'なし'}</p>
+                                    {hasHackathonExperience === 'yes' && <p><strong>経験詳細:</strong> {experienceDetail || '—'}</p>}
+                                    <p><strong>触ったことのある技術:</strong> {technologiesInput ? technologiesInput.split(/[,\n]+/).map(t=>t.trim()).filter(Boolean).join(', ') : '—'}</p>
+                                </>
+                            )}
                             <p><strong>チーム説明:</strong> {teamSize === 1 ? '（個人参加のため表示なし）' : (teamDescription || '—')}</p>
                             <p><strong>アレルギー:</strong> {hasAllergy === 'yes' ? allergyDetail || '詳細なし' : 'なし'}</p>
                             <div>

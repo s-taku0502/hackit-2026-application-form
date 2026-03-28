@@ -119,14 +119,14 @@ Indexes like `by_foo` and `by_foo_and_bar` are usually redundant. You only need 
 
 ```ts
 // Bad: two indexes where one would do
-defineTable({ team: v.id("teams"), user: v.id("users") })
+defineTable({ team: v.id("personal"), user: v.id("users") })
   .index("by_team", ["team"])
   .index("by_team_and_user", ["team", "user"])
 ```
 
 ```ts
 // Good: single compound index serves both query patterns
-defineTable({ team: v.id("teams"), user: v.id("users") })
+defineTable({ team: v.id("personal"), user: v.id("users") })
   .index("by_team_and_user", ["team", "user"])
 ```
 

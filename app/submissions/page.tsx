@@ -7,6 +7,7 @@ import { api } from "../../convex/_generated/api";
 export default function TeamsPage() {
     const [teamName, setTeamName] = useState("");
     const [leaderName, setLeaderName] = useState("");
+    const [productName, setProductName] = useState("");
     const [githubUrl, setGithubUrl] = useState("");
     const [githubUrlBackup, setGithubUrlBackup] = useState("");
     const [publicSite, setPublicSite] = useState("");
@@ -24,6 +25,7 @@ export default function TeamsPage() {
         e.preventDefault();
         // teams テーブルを上書きする（submitTeam はアップサート実装）
         submitTeamMutation({
+            productName: productName || undefined,
             teamName,
             leaderName: leaderName || undefined,
             githubUrl: githubUrl || undefined,
@@ -118,6 +120,7 @@ export default function TeamsPage() {
                                 setTeamName(e.target.value);
                                 if (sel) {
                                     setLeaderName(sel.leaderName || "");
+                                    setProductName(sel.projectName || sel.productName || "");
                                     setGithubUrl(sel.githubUrl || "");
                                     setGithubUrlBackup(sel.githubUrlBackup || "");
                                     setPublicSite(sel.publicSite || "");
@@ -134,6 +137,17 @@ export default function TeamsPage() {
                                 </option>
                             ))}
                         </select>
+                    </label>
+
+                    <label className="block">
+                        <span className="block font-medium">プロダクト名</span>
+                        <input
+                            value={productName}
+                            onChange={(e) => setProductName(e.target.value)}
+                            className="mt-1 block w-full border rounded px-3 py-2"
+                            required
+                            disabled={!authorized}
+                        />
                     </label>
 
                     <label className="block">

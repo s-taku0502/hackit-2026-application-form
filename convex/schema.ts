@@ -9,8 +9,7 @@ export default defineSchema({
             v.object({
                 gradeClass: v.string(),
                 studentId: v.string(),
-                    name: v.string(),
-                    gender: v.optional(v.string()),
+                name: v.string(),
                 furigana: v.optional(v.string()),
                 attendanceTimestamps: v.optional(
                     v.object({
@@ -22,9 +21,11 @@ export default defineSchema({
                 attendance: v.optional(
                     v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
                 ),
+                gender: v.optional(v.string()),
             })
         ),
         teamDescription: v.string(),
+        productName: v.optional(v.string()),
         teamName: v.optional(v.string()),
         githubUrl: v.optional(v.string()),
         githubUrlBackup: v.optional(v.string()),
@@ -46,6 +47,30 @@ export default defineSchema({
         allergy: v.object({ hasAllergy: v.string(), allergyDetail: v.string() }),
         submittedAt: v.string(),
     }),
+
+    personal: defineTable({
+        projectName: v.string(),
+        productName: v.optional(v.string()),
+        gradeClass: v.string(),
+        studentId: v.string(),
+        name: v.string(),
+        furigana: v.optional(v.string()),
+        gender: v.optional(v.string()),
+        leaderName: v.optional(v.string()),
+        leaderEmail: v.optional(v.string()),
+        hasHackathonExperience: v.optional(v.string()),
+        experienceDetail: v.optional(v.string()),
+        technologies: v.optional(v.array(v.string())),
+        agreements: v.object({
+            agreeCancel: v.boolean(),
+            agreePrivacy: v.boolean(),
+            agreeShare: v.boolean(),
+            agreeLottery: v.boolean(),
+        }),
+        allergy: v.object({ hasAllergy: v.string(), allergyDetail: v.string() }),
+        submittedAt: v.string(),
+    }),
+
     teams: defineTable({
         teamName: v.string(),
         leaderName: v.optional(v.string()),
@@ -56,5 +81,16 @@ export default defineSchema({
         publicSite: v.optional(v.string()),
         publicSiteBackup: v.optional(v.string()),
         submittedAt: v.string(),
+    }),
+    feedback: defineTable({
+        teamName: v.string(),
+        productName: v.string(),
+        judgeName: v.optional(v.string()),
+        score: v.optional(v.number()),
+        comments: v.string(),
+        submittedAt: v.string(),
+    }),
+    judgements: defineTable({
+        name: v.string(),
     }),
 });

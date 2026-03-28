@@ -4,6 +4,7 @@ import { v } from "convex/values";
 export const submitEvent = mutation({
     args: {
         projectName: v.string(),
+        productName: v.optional(v.string()),
         teamSize: v.number(),
         members: v.array(
             v.object({
@@ -12,6 +13,8 @@ export const submitEvent = mutation({
                 name: v.string(),
                     gender: v.optional(v.string()),
                 furigana: v.optional(v.string()),
+                // 各メンバーの任意の GitHub URL
+                githubUrl: v.optional(v.string()),
                 attendance: v.optional(
                     v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
                 ),
@@ -45,6 +48,37 @@ export const submitEvent = mutation({
     },
 });
 
+export const submitPersonal = mutation({
+    args: {
+        projectName: v.string(),
+        productName: v.optional(v.string()),
+        gradeClass: v.string(),
+        studentId: v.string(),
+        name: v.string(),
+        furigana: v.optional(v.string()),
+        gender: v.optional(v.string()),
+        leaderName: v.optional(v.string()),
+        leaderEmail: v.optional(v.string()),
+        // ハッカソン経験の有無と詳細（個人参加）
+        hasHackathonExperience: v.optional(v.string()),
+        experienceDetail: v.optional(v.string()),
+        // 使用技術（個人参加者が触ったことのある技術）
+        technologies: v.optional(v.array(v.string())),
+        agreements: v.object({
+            agreeCancel: v.boolean(),
+            agreePrivacy: v.boolean(),
+            agreeShare: v.boolean(),
+            agreeLottery: v.boolean(),
+        }),
+        allergy: v.object({ hasAllergy: v.string(), allergyDetail: v.string() }),
+        submittedAt: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const id = await ctx.db.insert("personal", args);
+        return id;
+    },
+});
+
 export const submitTeam = mutation({
     args: {
         teamName: v.string(),
@@ -55,19 +89,46 @@ export const submitTeam = mutation({
         githubUrlBackup: v.optional(v.string()),
         publicSite: v.optional(v.string()),
         publicSiteBackup: v.optional(v.string()),
+        // Allow older callers that pass full event-like payloads: make common event fields optional
+        projectName: v.optional(v.string()),
+        productName: v.optional(v.string()),
+        teamSize: v.optional(v.number()),
+        members: v.optional(
+            v.array(
+                v.object({
+                    gradeClass: v.string(),
+                    studentId: v.string(),
+                    name: v.string(),
+                    gender: v.optional(v.string()),
+                    furigana: v.optional(v.string()),
+                    githubUrl: v.optional(v.string()),
+                    attendance: v.optional(
+                        v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
+                    ),
+                })
+            )
+        ),
+        leaderIndex: v.optional(v.number()),
+        hasFirstYear: v.optional(v.string()),
+        teamDescription: v.optional(v.string()),
+        attendance: v.optional(
+            v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
+        ),
+        agreements: v.optional(
+            v.object({
+                agreeCancel: v.boolean(),
+                agreePrivacy: v.boolean(),
+                agreeShare: v.boolean(),
+                agreeLottery: v.boolean(),
+            })
+        ),
+        allergy: v.optional(v.object({ hasAllergy: v.string(), allergyDetail: v.string() })),
         submittedAt: v.string(),
     },
     handler: async (ctx, args) => {
-        // Upsert by `teamName`: 上書きする場合は既存ドキュメントを更新、なければ挿入。
-        // 仕様変更: 新規 `teams` ドキュメントは作成しない。既存の `teams` が見つかれば上書き、
-        // 見つからなければ `events` テーブルの既存レコードの `teamName` を上書きする。
-        const allTeams = await ctx.db.query("teams").collect();
-        const existing = allTeams.find((t) => t.teamName === args.teamName);
+        // 仕様: teams テーブルを使わず、まず leaderStudentId で events を探して patch、
+        // 見つからなければ teamName で events を探して patch します。teams/personal テーブルは更新しません。
         let teamId: string | null = null;
-        if (existing) {
-            await ctx.db.patch(existing._id, args);
-            teamId = existing._id;
-        }
 
         // leaderStudentId があれば、events 側で該当メンバーを探して teamName 等を上書きする。
         let patchedEventId: string | null = null;
@@ -79,6 +140,7 @@ export const submitTeam = mutation({
             if (matched) {
                 const patchData: Record<string, any> = {};
                 if (args.teamName) patchData.teamName = args.teamName;
+                if (args.productName) patchData.productName = args.productName;
                 if (args.leaderName) patchData.leaderName = args.leaderName;
                 if (args.leaderEmail) patchData.leaderEmail = args.leaderEmail;
                 if (args.githubUrl) patchData.githubUrl = args.githubUrl;
@@ -124,13 +186,13 @@ export const listEvents = query({
 
 export const listTeams = query({
     handler: async (ctx) => {
-        return await ctx.db.query("teams").collect();
+        return await ctx.db.query("personal").collect();
     },
 });
 
 export const teamsWithDetails = query({
     handler: async (ctx) => {
-        const teams = await ctx.db.query("teams").collect();
+        const teams = await ctx.db.query("personal").collect();
         const events = await ctx.db.query("events").collect();
         // Join teams with any event that matches on leaderEmail (best-effort link).
         return teams.map((team) => {
