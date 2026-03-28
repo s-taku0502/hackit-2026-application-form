@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { useMutation } from "convex/react";
+import useSettings from "../hooks/useSettings";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
 export default function TeamsCreatePage() {
+    const settings = useSettings();
     const [teamName, setTeamName] = useState("");
     const [leaderFamilyName, setLeaderFamilyName] = useState("");
     const [leaderGivenName, setLeaderGivenName] = useState("");
@@ -13,6 +15,12 @@ export default function TeamsCreatePage() {
     const [error, setError] = useState("");
 
     const submitTeamMutation = useMutation(api.events.submitTeam);
+    const events = useQuery(api.events.listEvents) || [];
+    const teams = Array.from(
+        new Map(
+            events.filter((e: any) => e.teamName && e.teamName.trim() !== "").map((e: any) => [e.teamName, e])
+        ).values()
+    );
 
     function computeEmail(id: string) {
         return id ? `${id}@st.kanazawa-it.ac.jp` : "";
@@ -102,6 +110,24 @@ export default function TeamsCreatePage() {
                     </div>
                 </form>
             )}
+
+            {/* Existing teams from DB */}
+            <section className="mt-8">
+                <h2 className="text-lg font-semibold mb-3">登録済みチーム（DB）</h2>
+                {teams.length === 0 ? (
+                    <div className="text-sm text-slate-500">まだ登録されたチームはありません。</div>
+                ) : (
+                    <ul className="space-y-2">
+                        {teams.map((t: any) => (
+                            <li key={t._id} className="p-3 border rounded bg-white">
+                                <div className="font-semibold">{t.teamName}</div>
+                                <div className="text-sm text-slate-600">リーダー: {t.leaderName || "-"}</div>
+                                {t.productName && <div className="text-sm text-slate-600">プロダクト: {t.productName}</div>}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </section>
         </div>
     );
 }

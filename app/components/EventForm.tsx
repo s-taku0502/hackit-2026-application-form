@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import useSettings from "../hooks/useSettings";
 
 type Member = { gradeClass: string; studentId: string; familyName: string; givenName: string; furiganaFamily?: string; furiganaGiven?: string; gender?: string; githubUrl?: string };
 
@@ -42,6 +43,7 @@ export default function EventForm() {
 
     const submitEventMutation = useMutation(api.events.submitEvent);
     const submitPersonalMutation = useMutation(api.events.submitPersonal);
+    const settings = useSettings();
 
     function setMemberField(idx: number, field: keyof Member, value: string) {
         const next = members.slice();
@@ -323,6 +325,9 @@ export default function EventForm() {
         <form onSubmit={onSubmit} className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header Section */}
             <div className="mb-8 text-center">
+                {settings && settings.enabled === false && (
+                    <div className="mb-2 text-sm text-amber-700">開発環境: 運営設定は無効です</div>
+                )}
                 <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-amber-900">HacKit 2026</h2>
                 <h3 className="text-xl sm:text-2xl font-semibold mb-4 text-amber-800">イベント申し込みフォーム</h3>
                 <p className="text-amber-700 font-medium">繋がる、創る、超えていく。</p>

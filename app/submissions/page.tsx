@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import useSettings from "../hooks/useSettings";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
@@ -73,6 +74,14 @@ export default function TeamsPage() {
         // ページ読み込み時は特に処理なし（オーバーレイで入力を促す）
         setMounted(true);
     }, []);
+
+    // Load app settings and, if settings are disabled (development), bypass keyword gate.
+    const settings = useSettings();
+    useEffect(() => {
+        if (settings && settings.enabled === false) {
+            setAuthorized(true);
+        }
+    }, [settings]);
 
     return (
         <div className="max-w-3xl mx-auto p-6 relative">
