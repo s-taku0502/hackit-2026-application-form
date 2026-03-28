@@ -70,7 +70,6 @@ export default defineSchema({
         allergy: v.object({ hasAllergy: v.string(), allergyDetail: v.string() }),
         submittedAt: v.string(),
     }),
-
     teams: defineTable({
         teamName: v.string(),
         leaderName: v.optional(v.string()),
@@ -82,24 +81,37 @@ export default defineSchema({
         publicSiteBackup: v.optional(v.string()),
         submittedAt: v.string(),
     }),
+    // 審査員一覧（名前のみ）
     judgements: defineTable({
-        // Fixed columns for judging sheet
-        judgeName: v.string(), // 審査員名
-        judgeTeamName: v.optional(v.string()), // 審査チーム名（審査員の所属チームなど）
-        productName: v.optional(v.string()), // 該当プロダクト名
-        criterion1: v.optional(v.union(v.number(), v.null())), // 評価基準1
-        criterion2: v.optional(v.union(v.number(), v.null())), // 評価基準2
-        criterion3: v.optional(v.union(v.number(), v.null())), // 評価基準3
-        note: v.optional(v.string()), // メモ
-        comments: v.optional(v.string()), // 評価コメント
+        judgeName: v.string(),
         createdAt: v.string(),
     }),
+
+    // 審査結果（各審査の詳細を格納）
     feedback: defineTable({
-        teamName: v.string(),
-        productName: v.string(),
-        judgeName: v.optional(v.string()),
-        score: v.optional(v.number()),
-        comments: v.string(),
-        submittedAt: v.string(),
+        judgeName: v.string(), // 審査員名
+        judgeTeamName: v.optional(v.string()), // 審査対象チーム名
+        productName: v.optional(v.string()), // 該当プロダクト名
+        criterion1: v.optional(v.union(v.number(), v.null())),
+        criterion2: v.optional(v.union(v.number(), v.null())),
+        criterion3: v.optional(v.union(v.number(), v.null())),
+        note: v.optional(v.string()),
+        comments: v.optional(v.string()),
+        createdAt: v.string(),
+    }),
+    // 管理用設定テーブル（単一ドキュメントでグローバル設定を保持）
+    settings: defineTable({
+        key: v.string(), // 例: "global"
+        submissionDeadline: v.optional(v.string()), // ISO日時文字列
+        judgingDeadline: v.optional(v.string()), // ISO日時文字列
+        registrationOpen: v.optional(v.boolean()),
+        // 参加者関連
+        eventApplicationStart: v.optional(v.string()),
+        eventApplicationEnd: v.optional(v.string()),
+        teamRegistrationEnd: v.optional(v.string()),
+        // 審査関連
+        judgingStart: v.optional(v.string()),
+        judgingEnd: v.optional(v.string()),
+        updatedAt: v.string(),
     }),
 });
