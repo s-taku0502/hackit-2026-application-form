@@ -1,6 +1,12 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+const YEAR = new Date().getFullYear().toString();
+function T(name: string) {
+    // Avoid identifiers starting with a digit. Use suffix form like `events2026`.
+    return `${name}${YEAR}`;
+}
+
 export const submitEvent = mutation({
     args: {
         projectName: v.string(),
@@ -43,7 +49,7 @@ export const submitEvent = mutation({
         submittedAt: v.string(),
     },
     handler: async (ctx, args) => {
-        const id = await ctx.db.insert("events", args);
+        const id = await ctx.db.insert(T("events"), args);
         // No automatic judgements insertion for fixed-column judgements.
         return id;
     },
@@ -75,7 +81,7 @@ export const submitPersonal = mutation({
         submittedAt: v.string(),
     },
     handler: async (ctx, args) => {
-        const id = await ctx.db.insert("personal", args);
+        const id = await ctx.db.insert(T("personal"), args);
         return id;
     },
 });
@@ -132,9 +138,9 @@ export const submitTeam = mutation({
         let patchedEventId: string | null = null;
 
         if (args.leaderStudentId) {
-            const allEvents = await ctx.db.query("events").collect();
-            const matched = allEvents.find((e) =>
-                Array.isArray(e.members) && e.members.some((m) => m.studentId === args.leaderStudentId)
+            const allEvents = (await ctx.db.query(T("events")).collect()) as any[];
+            const matched = allEvents.find((e: any) =>
+                Array.isArray(e.members) && e.members.some((m: any) => m.studentId === args.leaderStudentId)
             );
             if (matched) {
                 const patchData: Record<string, any> = {};
@@ -154,8 +160,8 @@ export const submitTeam = mutation({
         }
 
         if (!patchedEventId && args.teamName) {
-            const allEvents = await ctx.db.query("events").collect();
-            const matchedByTeam = allEvents.find((e) => e.teamName === args.teamName);
+            const allEvents = (await ctx.db.query(T("events")).collect()) as any[];
+            const matchedByTeam = allEvents.find((e: any) => e.teamName === args.teamName);
             if (matchedByTeam) {
                 const patchData: Record<string, any> = {};
                 if (args.leaderName) patchData.leaderName = args.leaderName;
@@ -178,24 +184,24 @@ export const submitTeam = mutation({
 
 export const listEvents = query({
     handler: async (ctx) => {
-        return await ctx.db.query("events").collect();
+        return (await ctx.db.query(T("events")).collect()) as any[];
     },
 });
 
 export const listTeams = query({
     handler: async (ctx) => {
-        return await ctx.db.query("personal").collect();
+        return (await ctx.db.query(T("personal")).collect()) as any[];
     },
 });
 
 export const teamsWithDetails = query({
     handler: async (ctx) => {
-        const teams = await ctx.db.query("personal").collect();
-        const events = await ctx.db.query("events").collect();
+        const teams = (await ctx.db.query(T("personal")).collect()) as any[];
+        const events = (await ctx.db.query(T("events")).collect()) as any[];
         // Join teams with any event that matches on leaderEmail (best-effort link).
-        return teams.map((team) => {
-            const matchedEvent = events.find(
-                (e) => e.leaderEmail && team.leaderEmail && e.leaderEmail === team.leaderEmail
+        return teams.map((team: any) => {
+            const matchedEvent = events.find((e: any) =>
+                e.leaderEmail && team.leaderEmail && e.leaderEmail === team.leaderEmail
             );
             return { ...team, event: matchedEvent || null };
         });

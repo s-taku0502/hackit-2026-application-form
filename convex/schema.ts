@@ -1,8 +1,11 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+const YEAR = new Date().getFullYear().toString();
+
 export default defineSchema({
-    events: defineTable({
+    // Tables append the YEAR value to avoid identifiers starting with a digit (e.g. "events2026").
+    ["events" + YEAR]: defineTable({
         projectName: v.string(),
         teamSize: v.number(),
         members: v.array(
@@ -48,7 +51,7 @@ export default defineSchema({
         submittedAt: v.string(),
     }),
 
-    personal: defineTable({
+    ["personal" + YEAR]: defineTable({
         projectName: v.string(),
         productName: v.optional(v.string()),
         gradeClass: v.string(),
@@ -70,7 +73,7 @@ export default defineSchema({
         allergy: v.object({ hasAllergy: v.string(), allergyDetail: v.string() }),
         submittedAt: v.string(),
     }),
-    teams: defineTable({
+    ["teams" + YEAR]: defineTable({
         teamName: v.string(),
         leaderName: v.optional(v.string()),
         leaderStudentId: v.optional(v.string()),
@@ -82,13 +85,13 @@ export default defineSchema({
         submittedAt: v.string(),
     }),
     // 審査員一覧（名前のみ）
-    judgements: defineTable({
+    ["judgements" + YEAR]: defineTable({
         judgeName: v.string(),
         createdAt: v.string(),
     }),
 
     // 審査結果（各審査の詳細を格納）
-    feedback: defineTable({
+    ["feedback" + YEAR]: defineTable({
         judgeName: v.string(), // 審査員名
         judgeTeamName: v.optional(v.string()), // 審査対象チーム名
         productName: v.optional(v.string()), // 該当プロダクト名
@@ -100,7 +103,7 @@ export default defineSchema({
         createdAt: v.string(),
     }),
     // 管理用設定テーブル（単一ドキュメントでグローバル設定を保持）
-    settings: defineTable({
+    ["settings" + YEAR]: defineTable({
         key: v.string(), // 例: "global"
         submissionDeadline: v.optional(v.string()), // ISO日時文字列
         judgingDeadline: v.optional(v.string()), // ISO日時文字列
