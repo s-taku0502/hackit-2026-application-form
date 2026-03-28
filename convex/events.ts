@@ -23,6 +23,10 @@ export const submitEvent = mutation({
         hasFirstYear: v.string(),
         teamDescription: v.string(),
         teamName: v.optional(v.string()),
+        githubUrl: v.optional(v.string()),
+        githubUrlBackup: v.optional(v.string()),
+        publicSite: v.optional(v.string()),
+        publicSiteBackup: v.optional(v.string()),
         attendance: v.optional(
             v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
         ),
@@ -77,9 +81,32 @@ export const submitTeam = mutation({
                 if (args.teamName) patchData.teamName = args.teamName;
                 if (args.leaderName) patchData.leaderName = args.leaderName;
                 if (args.leaderEmail) patchData.leaderEmail = args.leaderEmail;
+                if (args.githubUrl) patchData.githubUrl = args.githubUrl;
+                if (args.githubUrlBackup) patchData.githubUrlBackup = args.githubUrlBackup;
+                if (args.publicSite) patchData.publicSite = args.publicSite;
+                if (args.publicSiteBackup) patchData.publicSiteBackup = args.publicSiteBackup;
                 if (Object.keys(patchData).length > 0) {
                     await ctx.db.patch(matched._id, patchData);
                     patchedEventId = matched._id;
+                }
+            }
+        }
+
+        // teams に見つからず leaderStudentId も無い／マッチしない場合、teamName で events を探して上書きする。
+        if (!teamId && !patchedEventId && args.teamName) {
+            const allEvents = await ctx.db.query("events").collect();
+            const matchedByTeam = allEvents.find((e) => e.teamName === args.teamName);
+            if (matchedByTeam) {
+                const patchData: Record<string, any> = {};
+                if (args.leaderName) patchData.leaderName = args.leaderName;
+                if (args.leaderEmail) patchData.leaderEmail = args.leaderEmail;
+                if (args.githubUrl) patchData.githubUrl = args.githubUrl;
+                if (args.githubUrlBackup) patchData.githubUrlBackup = args.githubUrlBackup;
+                if (args.publicSite) patchData.publicSite = args.publicSite;
+                if (args.publicSiteBackup) patchData.publicSiteBackup = args.publicSiteBackup;
+                if (Object.keys(patchData).length > 0) {
+                    await ctx.db.patch(matchedByTeam._id, patchData);
+                    patchedEventId = matchedByTeam._id;
                 }
             }
         }

@@ -26,6 +26,10 @@ export default defineSchema({
         ),
         teamDescription: v.string(),
         teamName: v.optional(v.string()),
+        githubUrl: v.optional(v.string()),
+        githubUrlBackup: v.optional(v.string()),
+        publicSite: v.optional(v.string()),
+        publicSiteBackup: v.optional(v.string()),
         attendance: v.optional(
             v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
         ),

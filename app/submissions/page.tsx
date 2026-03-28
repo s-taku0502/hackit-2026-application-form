@@ -36,7 +36,15 @@ export default function TeamsPage() {
             .catch((err) => console.error(err));
     }
 
-    const teams = useQuery(api.events.listTeams) || [];
+    const events = useQuery(api.events.listEvents) || [];
+    // events から teamName があるものを抽出して重複を排除した配列を作る
+    const teams = Array.from(
+        new Map(
+            events
+                .filter((e: any) => e.teamName && e.teamName.trim() !== "")
+                .map((e: any) => [e.teamName, e])
+        ).values()
+    );
 
     async function verifyKeyword(e?: React.FormEvent) {
         if (e) e.preventDefault();
@@ -94,8 +102,9 @@ export default function TeamsPage() {
             )}
 
             {submitted ? (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded">
-                    送信ありがとうございます。フォームはローカルで受け付けました。
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded text-center">
+                    送信ありがとうございます。 <br />
+                    登録内容を保存しました。
                 </div>
             ) : (
                 <form onSubmit={onSubmit} className="space-y-4">
@@ -107,7 +116,13 @@ export default function TeamsPage() {
                             onChange={(e) => {
                                 const sel = teams.find((t: any) => t.teamName === e.target.value);
                                 setTeamName(e.target.value);
-                                if (sel) setLeaderName(sel.leaderName || "");
+                                if (sel) {
+                                    setLeaderName(sel.leaderName || "");
+                                    setGithubUrl(sel.githubUrl || "");
+                                    setGithubUrlBackup(sel.githubUrlBackup || "");
+                                    setPublicSite(sel.publicSite || "");
+                                    setPublicSiteBackup(sel.publicSiteBackup || "");
+                                }
                             }}
                             disabled={!authorized}
                             required
