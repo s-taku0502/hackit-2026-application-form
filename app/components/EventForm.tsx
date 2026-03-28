@@ -19,6 +19,9 @@ export default function EventForm() {
         { ...emptyMember },
         { ...emptyMember },
     ]);
+    // store last auto-generated furigana to avoid overwriting user edits
+    const autoFuriFamilyRef = useRef<string[]>(Array(5).fill(""));
+    const autoFuriGivenRef = useRef<string[]>(Array(5).fill(""));
     const [leaderIndex, setLeaderIndex] = useState<number>(-1);
     const [leaderName, setLeaderName] = useState("");
     const [leaderEmail, setLeaderEmail] = useState("");
@@ -39,7 +42,7 @@ export default function EventForm() {
     function setMemberField(idx: number, field: keyof Member, value: string) {
         const next = members.slice();
         next[idx] = { ...next[idx], [field]: value };
-        setMembers(next);
+
         // keep leaderName in sync when editing the leader's member name
         if ((field === "familyName" || field === "givenName") && idx === leaderIndex) {
             const fam = field === "familyName" ? value : next[idx].familyName;
@@ -52,6 +55,43 @@ export default function EventForm() {
             if (id) setLeaderEmail(`c${id}@st.kanazawa-it.ac.jp`);
             else setLeaderEmail("");
         }
+
+        // Auto-generate furigana (Katakana) when user types name in kana.
+        // Only set if the furigana field is empty or equals previous auto-generated value
+        if (field === "familyName" || field === "givenName") {
+            const fam = field === "familyName" ? value : next[idx].familyName;
+            const giv = field === "givenName" ? value : next[idx].givenName;
+
+            function toKatakana(s: string) {
+                // convert hiragana range to katakana by codepoint offset
+                return s.replace(/[\u3041-\u3096]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+            }
+
+            // detect if input contains hiragana or katakana (we only auto-convert when kana is present)
+            const famHasKana = /[\u3041-\u309F\u30A0-\u30FF]/.test(fam || "");
+            const givHasKana = /[\u3041-\u309F\u30A0-\u30FF]/.test(giv || "");
+
+            if (famHasKana) {
+                const auto = toKatakana(fam.trim());
+                const cur = next[idx].furiganaFamily || "";
+                const prevAuto = autoFuriFamilyRef.current[idx] || "";
+                if (!cur || cur === prevAuto) {
+                    next[idx] = { ...next[idx], furiganaFamily: auto };
+                    autoFuriFamilyRef.current[idx] = auto;
+                }
+            }
+            if (givHasKana) {
+                const auto = toKatakana(giv.trim());
+                const cur = next[idx].furiganaGiven || "";
+                const prevAuto = autoFuriGivenRef.current[idx] || "";
+                if (!cur || cur === prevAuto) {
+                    next[idx] = { ...next[idx], furiganaGiven: auto };
+                    autoFuriGivenRef.current[idx] = auto;
+                }
+            }
+        }
+
+        setMembers(next);
     }
 
     useEffect(() => {
