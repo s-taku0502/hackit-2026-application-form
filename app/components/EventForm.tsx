@@ -375,7 +375,7 @@ export default function EventForm() {
         <form onSubmit={onSubmit} className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header Section */}
             <div className="mb-8 text-center">
-                {settings && settings.enabled === false && (
+                {settings && (settings as any).enabled === false && (
                     <div className="mb-2 text-sm text-amber-700">開発環境: 運営設定は無効です</div>
                 )}
                 <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-amber-900">HacKit 2026</h2>
