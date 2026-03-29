@@ -1,4 +1,5 @@
 import EventForm from "./components/EventForm";
+import DeadlineBanner from "./components/DeadlineBanner";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
 
         {/* Form */}
         <div className="bg-white bg-opacity-80 rounded-2xl shadow-xl p-6 md:p-10 border-4 border-amber-200">
+          <DeadlineBanner />
           <EventForm />
         </div>
 

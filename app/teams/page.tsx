@@ -35,8 +35,9 @@ export default function TeamsCreatePage() {
 
     const appStart = parseSettingDate(settings, "eventApplicationStart");
     const appEnd = parseSettingDate(settings, "eventApplicationEnd");
+    const teamEnd = parseSettingDate(settings, "teamRegistrationEnd");
     const beforeStart = appStart && now < appStart;
-    const afterEnd = appEnd && now > appEnd;
+    const afterTeamEnd = teamEnd && now > teamEnd;
 
     function renderCountdown(target: Date) {
         const diff = Math.max(0, target.getTime() - now.getTime());
@@ -49,6 +50,20 @@ export default function TeamsCreatePage() {
                 <p className="text-lg font-semibold">チーム登録はまだ開始されていません。</p>
                 <p className="mt-2">開始までの残り時間：</p>
                 <div className="mt-3 text-2xl font-mono">{`${days}日 ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`}</div>
+            </div>
+        );
+    }
+
+    function renderDeadlineCountdown(target: Date, label: string) {
+        const diff = Math.max(0, target.getTime() - now.getTime());
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / (1000 * 60)) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+        return (
+            <div className="p-4 bg-sky-50 border border-sky-200 rounded text-center mb-4">
+                <p className="text-sm text-slate-700">{label}</p>
+                <div className="mt-2 text-xl font-mono">{`${days}日 ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`}</div>
             </div>
         );
     }
@@ -89,7 +104,7 @@ export default function TeamsCreatePage() {
     if (beforeStart && appStart) {
         return <div className="max-w-3xl mx-auto p-6">{renderCountdown(appStart)}</div>;
     }
-    if (afterEnd && appEnd) {
+    if (afterTeamEnd && teamEnd) {
         return (
             <div className="max-w-3xl mx-auto p-6">
                 <div className="p-6 bg-red-50 border border-red-200 rounded">
@@ -103,6 +118,8 @@ export default function TeamsCreatePage() {
     return (
         <div className="max-w-3xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">チーム登録</h1>
+
+            {teamEnd && now < teamEnd && renderDeadlineCountdown(teamEnd, "チーム登録の締切までの残り時間：")}
 
             {submitted ? (
                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded">チーム情報を登録しました。</div>
