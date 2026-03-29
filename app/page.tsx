@@ -22,10 +22,19 @@ export default function Home() {
         </div>
 
         {/* Footer Info */}
-        <div className="mt-12 text-center text-amber-700 text-sm">
-          <p className="mb-2">スケジュール: キックオフ 2026.07.25 | ハッキング 2026.08.01-02 | 最終発表 2026.08.03</p>
-          <p>ご質問は <a href="https://x.com/HacKit_KIT" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-900">@HacKit_KIT</a> までお問い合わせください。</p>
-        </div>
+        <footer className="mt-12 text-center text-amber-700 text-sm">
+          <div className="mb-2">
+            <a href="https://hackit-2026.vercel.app/" className="inline-block">スケジュール: キックオフ 2026.07.25 | ハッキング 2026.08.01-02 | 最終発表 2026.08.03</a>
+          </div>
+          <div className="mb-2">
+            <a href="https://hackit-2026.vercel.app/" className="underline hover:text-amber-900">詳細情報はこちら</a>
+          </div>
+          <div>
+            <span>ご質問は </span>
+            <a href="https://x.com/HacKit_KIT" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-900">@HacKit_KIT</a>
+            <span> までお問い合わせください。</span>
+          </div>
+        </footer>
       </main>
     </div>
   );
