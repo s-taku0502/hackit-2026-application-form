@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useSettings from "../hooks/useSettings";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -13,6 +13,11 @@ export default function TeamsCreatePage() {
     const [leaderStudentId, setLeaderStudentId] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState("");
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const submitTeamMutation = useMutation(api.events.submitTeam);
     const events = useQuery(api.events.listEvents) || [];
@@ -111,10 +116,12 @@ export default function TeamsCreatePage() {
                 </form>
             )}
 
-            {/* Existing teams from DB */}
+            {/* Existing teams from DB (render placeholder on server to avoid hydration mismatch) */}
             <section className="mt-8">
                 <h2 className="text-lg font-semibold mb-3">登録済みチーム（DB）</h2>
-                {teams.length === 0 ? (
+                {!mounted ? (
+                    <div className="text-sm text-slate-500">読み込み中…</div>
+                ) : teams.length === 0 ? (
                     <div className="text-sm text-slate-500">まだ登録されたチームはありません。</div>
                 ) : (
                     <ul className="space-y-2">
