@@ -116,7 +116,7 @@ export default defineSchema({
         teamRegistrationEnd: v.optional(v.string()),
         // 審査関連
         judgingStart: v.optional(v.string()),
-        judgingEnd: v.optional(v.string()),
+        feedbackEnd: v.optional(v.string()),
         updatedAt: v.string(),
     }),
 });

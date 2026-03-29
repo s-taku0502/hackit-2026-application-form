@@ -207,3 +207,11 @@ export const teamsWithDetails = query({
         });
     },
 });
+
+// Return the single settings document (or null) for the current year.
+export const getSettings = query({
+    handler: async (ctx) => {
+        const all = (await ctx.db.query(T("settings")).collect()) as any[];
+        return all.length > 0 ? all[0] : null;
+    },
+});

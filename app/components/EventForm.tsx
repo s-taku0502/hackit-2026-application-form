@@ -44,6 +44,40 @@ export default function EventForm() {
     const submitEventMutation = useMutation(api.events.submitEvent);
     const submitPersonalMutation = useMutation(api.events.submitPersonal);
     const settings = useSettings();
+    const [now, setNow] = useState<Date>(new Date());
+
+    useEffect(() => {
+        const t = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(t);
+    }, []);
+
+    function parseSettingDate(s: any, key: string): Date | null {
+        if (!s) return null;
+        const v = s[key];
+        if (!v) return null;
+        const d = new Date(v);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    const appStart = parseSettingDate(settings, "eventApplicationStart");
+    const appEnd = parseSettingDate(settings, "eventApplicationEnd");
+    const beforeStart = appStart && now < appStart;
+    const afterEnd = appEnd && now > appEnd;
+
+    function renderCountdown(target: Date) {
+        const diff = Math.max(0, target.getTime() - now.getTime());
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / (1000 * 60)) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+        return (
+            <div className="p-6 bg-yellow-50 border border-yellow-200 rounded text-center">
+                <p className="text-lg font-semibold">申し込みはまだ開始されていません。</p>
+                <p className="mt-2">開始までの残り時間：</p>
+                <div className="mt-3 text-2xl font-mono">{`${days}日 ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`}</div>
+            </div>
+        );
+    }
 
     function setMemberField(idx: number, field: keyof Member, value: string) {
         const next = members.slice();
@@ -319,6 +353,22 @@ export default function EventForm() {
         setExperienceDetail("");
         setTechnologiesInput("");
         if (!opts.keepSubmit) setSubmitResult(null);
+    }
+
+    // If settings contain explicit application window, enforce it.
+    if (beforeStart && appStart) {
+        return <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">{renderCountdown(appStart)}</div>;
+    }
+    if (afterEnd && appEnd) {
+        return (
+            <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 p-6">
+                <div className="p-6 bg-red-50 border border-red-200 rounded">
+                    <h2 className="text-lg font-semibold">申し込みは終了しました。</h2>
+                    <p className="mt-2">不明点があれば下記問い合わせ先へお問い合わせください。</p>
+                    <p className="mt-2 text-sm">問い合わせ: <a href="https://x.com/HacKit_KIT" className="underline">@HacKit_KIT</a></p>
+                </div>
+            </div>
+        );
     }
 
     return (
