@@ -14,6 +14,8 @@ export default defineSchema({
                 studentId: v.string(),
                 name: v.string(),
                 furigana: v.optional(v.string()),
+                // 各メンバーの任意の GitHub URL
+                githubUrl: v.optional(v.string()),
                 attendanceTimestamps: v.optional(
                     v.object({
                         day1: v.optional(v.string()),
