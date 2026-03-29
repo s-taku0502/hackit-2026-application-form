@@ -715,7 +715,7 @@ export default function EventForm() {
                             onChange={(e) => setAgreeCancel(e.target.checked)}
                             className="w-5 h-5 mt-1 accent-amber-500 flex-shrink-0"
                         />
-                        <span className="ml-3 text-amber-900">一度申し込みをした場合、キャンセルすることはできない</span>
+                        <span className="ml-3 text-amber-900">申し込み後のキャンセルはできません。</span>
                     </label>
                     <label className="flex items-start cursor-pointer p-3 hover:bg-amber-100 rounded-lg transition">
                         <input
@@ -724,7 +724,7 @@ export default function EventForm() {
                             onChange={(e) => setAgreePrivacy(e.target.checked)}
                             className="w-5 h-5 mt-1 accent-amber-500 flex-shrink-0"
                         />
-                        <span className="ml-3 text-amber-900">撮影した写真を広報用SNSに掲載する可能性があります。またZoomにて録音・録画する可能性があります。</span>
+                        <span className="ml-3 text-amber-900">会場や活動の様子を撮影し、広報用のSNS等に掲載する場合があります。また、Zoomで録音・録画を行うことがあります。</span>
                     </label>
                     <label className="flex items-start cursor-pointer p-3 hover:bg-amber-100 rounded-lg transition">
                         <input
@@ -733,7 +733,7 @@ export default function EventForm() {
                             onChange={(e) => setAgreeShare(e.target.checked)}
                             className="w-5 h-5 mt-1 accent-amber-500 flex-shrink-0"
                         />
-                        <span className="ml-3 text-amber-900">スポンサー企業様に名前とメールアドレスを共有する場合があります。</span>
+                        <span className="ml-3 text-amber-900">スポンサー企業に氏名およびメールアドレス等の連絡先情報を共有する場合があります。</span>
                     </label>
                     <label className="flex items-start cursor-pointer p-3 hover:bg-amber-100 rounded-lg transition">
                         <input
@@ -742,7 +742,7 @@ export default function EventForm() {
                             onChange={(e) => setAgreeLottery(e.target.checked)}
                             className="w-5 h-5 mt-1 accent-amber-500 flex-shrink-0"
                         />
-                        <span className="ml-3 text-amber-900">申し込みチームが多数の場合、抽選となることに同意します。</span>
+                        <span className="ml-3 text-amber-900">応募者が多数の場合、参加者を抽選で決定することがあります。</span>
                     </label>
                 </div>
             </section>
