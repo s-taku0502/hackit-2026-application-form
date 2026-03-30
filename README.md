@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hackit 2026 — 申請フォームアプリ
 
-## Getting Started
+このリポジトリは Hackit 2026 のイベント申請フォーム用のフロントエンド・バックエンド統合アプリです。
+フロントエンドは Next.js（App Router）、バックエンドに Convex を使用しています。
 
-First, run the development server:
+## 概要
+- フレームワーク: Next.js
+- バックエンド: Convex
+- 言語: TypeScript / React
+
+主要なフォルダ:
+- `app/` — Next.js のルーティングと UI コンポーネント
+- `convex/` — Convex 関連の関数・スキーマ・自動生成ファイル
+
+## 必要環境
+- Node.js（推奨: 18+）
+- npm
+
+## ローカル開発
+1. 依存関係をインストールします:
+
+```bash
+npm install
+```
+
+2. Convex の開発サーバーを別ターミナルで起動します（Convex を使う機能があるため）:
+
+```bash
+npx convex dev
+```
+
+3. Next.js 開発サーバーを起動します:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで http://localhost:3000 を開くとアプリが見られます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+※環境により Convex のデプロイ先 URL や認証設定が必要な場合があります。詳細は `convex/README.md` と `convex/_generated/ai/guidelines.md` を参照してください。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 使える npm スクリプト
+- `npm run dev` — 開発モード（Next）
+- `npm run build` — 本番ビルド（Next）
+- `npm run start` — 本番サーバ起動（Next）
+- `npm run lint` — ESLint を実行
 
-## Learn More
+## 開発メモ / 注意点
+- Convex を使う箇所は `convex/` 以下に実装されています。Convex のルールやコード生成に関するガイドラインは `convex/_generated/ai/guidelines.md` を必ず確認してください。
+- API ルートや検証ロジックは `app/api/` 以下に分かれています。
 
-To learn more about Next.js, take a look at the following resources:
+## 貢献・テスト
+- 変更を行ったら `npm run lint` を実行して静的チェックを行ってください。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 参照
+- Convex 関連: [convex/README.md](convex/README.md)
+- プロジェクトのエージェントや作業指示: [AGENTS.md](AGENTS.md)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 詳細ドキュメント: [docs/APP_DETAILS.md](docs/APP_DETAILS.md)
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+質問や追加の要望があれば知らせてください。README の内容をさらに詳しく（デプロイ手順、環境変数一覧、アーキテクチャ図など）できます。
