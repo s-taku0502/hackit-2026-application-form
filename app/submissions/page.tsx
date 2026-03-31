@@ -10,6 +10,7 @@ export default function TeamsPage() {
     const [mounted, setMounted] = useState(false);
     const [leaderName, setLeaderName] = useState("");
     const [productName, setProductName] = useState("");
+    const [teamPassphrase, setTeamPassphrase] = useState("");
     const [githubUrl, setGithubUrl] = useState("");
     const [githubUrlBackup, setGithubUrlBackup] = useState("");
     const [publicSite, setPublicSite] = useState("");
@@ -29,6 +30,7 @@ export default function TeamsPage() {
         submitTeamMutation({
             productName: productName || undefined,
             teamName,
+            teamPassphrase: teamPassphrase || undefined,
             leaderName: leaderName || undefined,
             githubUrl: githubUrl || undefined,
             githubUrlBackup: githubUrlBackup || undefined,
@@ -48,6 +50,13 @@ export default function TeamsPage() {
                 .filter((e: any) => e.teamName && e.teamName.trim() !== "")
                 .map((e: any) => [e.teamName, e])
         ).values()
+    );
+
+    const selectedTeam = teams.find((t: any) => t.teamName === teamName);
+    const leaderMatches = !!(
+        selectedTeam &&
+        selectedTeam.leaderName &&
+        selectedTeam.leaderName === leaderName
     );
 
     async function verifyKeyword(e?: React.FormEvent) {
@@ -198,8 +207,9 @@ export default function TeamsPage() {
                                 const sel = teams.find((t: any) => t.teamName === e.target.value);
                                 setTeamName(e.target.value);
                                 if (sel) {
-                                    setLeaderName(sel.leaderName || "");
+                                    // Do not auto-fill leaderName when a team is selected.
                                     setProductName(sel.productName || "");
+                                    setTeamPassphrase(sel.teamPassphrase || "");
                                     setGithubUrl(sel.githubUrl || "");
                                     setGithubUrlBackup(sel.githubUrlBackup || "");
                                     setPublicSite(sel.publicSite || "");
@@ -210,7 +220,7 @@ export default function TeamsPage() {
                             required
                         >
                             <option value="">-- チームを選択 --</option>
-                                {mounted && teams.map((t: any) => (
+                                {teams.map((t: any) => (
                                     <option key={t._id} value={t.teamName}>
                                         {t.teamName}
                                     </option>
@@ -230,65 +240,96 @@ export default function TeamsPage() {
                     </label>
 
                     <label className="block">
-                        <span className="block font-medium">リーダー氏名</span>
+                        <span className="block font-medium">チーム合言葉</span>
                         <input
+                            value={teamPassphrase}
+                            onChange={(e) => setTeamPassphrase(e.target.value)}
+                            className="mt-1 block w-full border rounded px-3 py-2"
+                            placeholder="チームの合言葉を入力"
+                            disabled={!authorized}
+                        />
+                    </label>
+
+                    <label className="block">
+                        <span className="block font-medium">リーダー氏名（既存から選択）</span>
+                        <select
+                            className="mt-1 block w-full border rounded px-3 py-2"
                             value={leaderName}
                             onChange={(e) => setLeaderName(e.target.value)}
-                            className="mt-1 block w-full border rounded px-3 py-2"
                             required
                             disabled={!authorized}
-                        />
+                        >
+                            <option value="">-- リーダーを選択 --</option>
+                            {Array.from(
+                                new Map(
+                                    events
+                                        .map((ev: any) => ev.leaderName)
+                                        .filter((n: any) => n && String(n).trim() !== "")
+                                        .map((n: any) => [n, n])
+                                ).values()
+                            ).map((name: any) => (
+                                <option key={name} value={name}>
+                                    {name}
+                                </option>
+                            ))}
+                        </select>
                     </label>
 
-                    <label className="block">
-                        <span className="block font-medium">GitHub URL</span>
-                        <input
-                            value={githubUrl}
-                            onChange={(e) => setGithubUrl(e.target.value)}
-                            className="mt-1 block w-full border rounded px-3 py-2"
-                            placeholder="https://github.com/your-org/your-repo"
-                            disabled={!authorized}
-                        />
-                    </label>
+                    {leaderMatches ? (
+                        <>
+                            <label className="block">
+                                <span className="block font-medium">GitHub URL</span>
+                                <input
+                                    value={githubUrl}
+                                    onChange={(e) => setGithubUrl(e.target.value)}
+                                    className="mt-1 block w-full border rounded px-3 py-2"
+                                    placeholder="https://github.com/your-org/your-repo"
+                                    disabled={!authorized}
+                                />
+                            </label>
 
-                    <label className="block">
-                        <span className="block font-medium">GitHub URL (予備)</span>
-                        <input
-                            value={githubUrlBackup}
-                            onChange={(e) => setGithubUrlBackup(e.target.value)}
-                            className="mt-1 block w-full border rounded px-3 py-2"
-                            placeholder="https://github.com/backup/your-repo"
-                            disabled={!authorized}
-                        />
-                    </label>
+                            <label className="block">
+                                <span className="block font-medium">GitHub URL (予備)</span>
+                                <input
+                                    value={githubUrlBackup}
+                                    onChange={(e) => setGithubUrlBackup(e.target.value)}
+                                    className="mt-1 block w-full border rounded px-3 py-2"
+                                    placeholder="https://github.com/backup/your-repo"
+                                    disabled={!authorized}
+                                />
+                            </label>
 
-                    <label className="block">
-                        <span className="block font-medium">公開サイト等</span>
-                        <input
-                            value={publicSite}
-                            onChange={(e) => setPublicSite(e.target.value)}
-                            className="mt-1 block w-full border rounded px-3 py-2"
-                            placeholder="https://example.com"
-                            disabled={!authorized}
-                        />
-                    </label>
+                            <label className="block">
+                                <span className="block font-medium">公開サイト等</span>
+                                <input
+                                    value={publicSite}
+                                    onChange={(e) => setPublicSite(e.target.value)}
+                                    className="mt-1 block w-full border rounded px-3 py-2"
+                                    placeholder="https://example.com"
+                                    disabled={!authorized}
+                                />
+                            </label>
 
-                    <label className="block">
-                        <span className="block font-medium">公開サイト等 (予備)</span>
-                        <input
-                            value={publicSiteBackup}
-                            onChange={(e) => setPublicSiteBackup(e.target.value)}
-                            className="mt-1 block w-full border rounded px-3 py-2"
-                            placeholder="https://backup.example.com"
-                            disabled={!authorized}
-                        />
-                    </label>
+                            <label className="block">
+                                <span className="block font-medium">公開サイト等 (予備)</span>
+                                <input
+                                    value={publicSiteBackup}
+                                    onChange={(e) => setPublicSiteBackup(e.target.value)}
+                                    className="mt-1 block w-full border rounded px-3 py-2"
+                                    placeholder="https://backup.example.com"
+                                    disabled={!authorized}
+                                />
+                            </label>
+                            <div>
+                                <button className="px-4 py-2 bg-amber-600 text-white rounded" type="submit" disabled={!authorized}>
+                                    送信
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="p-3 text-sm text-slate-600">チーム名とリーダー氏名が一致した場合に、追加項目が表示されます。</div>
+                    )}
 
-                    <div>
-                        <button className="px-4 py-2 bg-amber-600 text-white rounded w-full sm:w-auto" type="submit" disabled={!authorized}>
-                            送信
-                        </button>
-                    </div>
                 </form>
             )}
             </div>

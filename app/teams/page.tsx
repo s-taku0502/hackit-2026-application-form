@@ -8,6 +8,7 @@ import { api } from "../../convex/_generated/api";
 export default function TeamsCreatePage() {
     const settings = useSettings();
     const [teamName, setTeamName] = useState("");
+    const [productName, setProductName] = useState("");
     const [leaderFamilyName, setLeaderFamilyName] = useState("");
     const [leaderGivenName, setLeaderGivenName] = useState("");
     const [leaderStudentId, setLeaderStudentId] = useState("");
@@ -36,8 +37,9 @@ export default function TeamsCreatePage() {
     const appStart = parseSettingDate(settings, "eventApplicationStart");
     const appEnd = parseSettingDate(settings, "eventApplicationEnd");
     const teamEnd = parseSettingDate(settings, "teamRegistrationEnd");
-    const beforeStart = appStart && now < appStart;
-    const afterTeamEnd = teamEnd && now > teamEnd;
+    // Only evaluate time-based conditions after client mount to avoid SSR/CSR mismatch
+    const beforeStart = mounted && appStart && now < appStart;
+    const afterTeamEnd = mounted && teamEnd && now > teamEnd;
 
     function renderCountdown(target: Date) {
         const diff = Math.max(0, target.getTime() - now.getTime());
@@ -89,6 +91,7 @@ export default function TeamsCreatePage() {
             // Map team registration to the events.submitEvent shape expected by Convex.
             await submitTeamMutation({
                 teamName: teamName || "",
+                productName: productName || undefined,
                 leaderName: combinedName || "",
                 leaderStudentId: leaderStudentId || "",
                 leaderEmail: leaderEmail || "",
@@ -120,7 +123,7 @@ export default function TeamsCreatePage() {
             <div className="max-w-3xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">チーム登録</h1>
 
-            {teamEnd && now < teamEnd && renderDeadlineCountdown(teamEnd, "チーム登録の締切までの残り時間：")}
+            {mounted && teamEnd && now < teamEnd && renderDeadlineCountdown(teamEnd, "チーム登録の締切までの残り時間：")}
 
             {submitted ? (
                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded">チーム情報を登録しました。</div>
