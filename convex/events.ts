@@ -188,6 +188,13 @@ export const listEvents = query({
     },
 });
 
+// Backwards-compatible public aliases expected by the frontend: `events:list`.
+export const list = query({
+    handler: async (ctx) => {
+        return (await ctx.db.query(T("events")).collect()) as any[];
+    },
+});
+
 export const listTeams = query({
     handler: async (ctx) => {
         return (await ctx.db.query(T("personal")).collect()) as any[];
@@ -208,10 +215,57 @@ export const teamsWithDetails = query({
     },
 });
 
+// Public alias expected by the frontend: `events:listJudgements` -> returns judgements table.
+export const listJudgements = query({
+    handler: async (ctx) => {
+        return (await ctx.db.query(T("judgements")).collect()) as any[];
+    },
+});
+
 // Return the single settings document (or null) for the current year.
 export const getSettings = query({
     handler: async (ctx) => {
         const all = (await ctx.db.query(T("settings")).collect()) as any[];
         return all.length > 0 ? all[0] : null;
+    },
+});
+
+// Update attendance for a single member inside an event's `members` array.
+export const updateMemberAttendance = mutation({
+    args: {
+        eventId: v.id(T("events")),
+        memberStudentId: v.string(),
+        attendance: v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() }),
+        // Optional: record a timestamp string for when attendance was marked
+        timestamp: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const eventDoc = (await ctx.db.get(T("events"), args.eventId)) as any;
+        if (!eventDoc) return null;
+
+        const members = Array.isArray(eventDoc.members) ? eventDoc.members.slice() : [];
+        let updated = false;
+        for (let i = 0; i < members.length; i++) {
+            const m: any = members[i];
+            if (m.studentId === args.memberStudentId) {
+                // Ensure attendance object exists
+                m.attendance = { ...m.attendance, ...args.attendance };
+                // Optionally set attendance timestamps per day
+                if (args.timestamp) {
+                    m.attendanceTimestamps = m.attendanceTimestamps || {};
+                    if (args.attendance.day1) m.attendanceTimestamps.day1 = args.timestamp;
+                    if (args.attendance.day2) m.attendanceTimestamps.day2 = args.timestamp;
+                    if (args.attendance.day3) m.attendanceTimestamps.day3 = args.timestamp;
+                }
+                members[i] = m;
+                updated = true;
+                break;
+            }
+        }
+
+        if (!updated) return null;
+
+        await ctx.db.patch(args.eventId, { members });
+        return args.eventId;
     },
 });
