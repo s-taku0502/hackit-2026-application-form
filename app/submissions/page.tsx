@@ -158,7 +158,8 @@ export default function TeamsPage() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto p-6 relative">
+        <div className="min-h-screen p-4 md:p-8 bg-gradient-to-b from-yellow-50 to-white">
+            <div className="max-w-3xl mx-auto p-6 relative">
             <h1 className="text-2xl font-bold mb-4">プロダクト情報登録フォーム</h1>
 
             {submissionDeadline && now < submissionDeadline && renderDeadlineCountdown(submissionDeadline, "プロダクト登録の締切までの残り時間：")}
@@ -319,7 +320,6 @@ export default function TeamsPage() {
                                     disabled={!authorized}
                                 />
                             </label>
-
                             <div>
                                 <button className="px-4 py-2 bg-amber-600 text-white rounded" type="submit" disabled={!authorized}>
                                     送信
@@ -329,8 +329,10 @@ export default function TeamsPage() {
                     ) : (
                         <div className="p-3 text-sm text-slate-600">チーム名とリーダー氏名が一致した場合に、追加項目が表示されます。</div>
                     )}
+
                 </form>
             )}
+            </div>
         </div>
     );
 }

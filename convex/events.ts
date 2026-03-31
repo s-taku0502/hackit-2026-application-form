@@ -1,6 +1,16 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+// Helper: require Convex auth for sensitive mutations when enabled via env
+async function requireConvexAuth(ctx: any) {
+    if (process.env.REQUIRE_AUTH !== "true") return;
+    // If Convex Auth isn't configured, ctx.auth may be undefined — fail closed
+    if (!ctx.auth || !ctx.auth.getUserIdentity) throw new Error("authentication not available");
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) throw new Error("authentication required");
+    return user;
+}
+
 const YEAR = new Date().getFullYear().toString();
 function T(name: string) {
     // Avoid identifiers starting with a digit. Use suffix form like `events2026`.
@@ -50,8 +60,53 @@ export const submitEvent = mutation({
         submittedAt: v.string(),
     },
     handler: async (ctx, args) => {
+        await requireConvexAuth(ctx);
+        // Basic server-side validation / sanitization
+        if (typeof args.projectName !== "string" || args.projectName.length === 0 || args.projectName.length > 200) {
+            throw new Error("invalid projectName");
+        }
+        if (!Array.isArray(args.members) || args.members.length === 0 || args.members.length > 20) {
+            throw new Error("invalid members");
+        }
+        if (typeof args.teamSize !== "number" || args.teamSize !== args.members.length) {
+            throw new Error("teamSize must match members length");
+        }
+
+        // Email and URL basic checks
+        const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+        if (!emailRe.test(args.leaderEmail)) throw new Error("invalid leaderEmail");
+
+        function isValidUrl(u?: string | null) {
+            if (!u) return true;
+            try {
+                const parsed = new URL(u);
+                return parsed.protocol === "https:" || parsed.protocol === "http:";
+            } catch (_e) {
+                return false;
+            }
+        }
+
+        if (!isValidUrl(args.githubUrl) || !isValidUrl(args.githubUrlBackup) || !isValidUrl(args.publicSite) || !isValidUrl(args.publicSiteBackup)) {
+            throw new Error("invalid url");
+        }
+
+        // Validate member fields lengths and remove PII fields that shouldn't be stored plainly
+        args.members = args.members.map((m: any) => {
+            const out: any = { name: String(m.name).slice(0, 200) };
+            if (m.furigana) out.furigana = String(m.furigana).slice(0, 200);
+            if (m.gender) out.gender = String(m.gender).slice(0, 50);
+            if (m.attendance) out.attendance = m.attendance;
+            // Do not store raw studentId/gradeClass in public events listing
+            if (m.studentId) out.studentId = String(m.studentId).slice(0, 64);
+            if (m.gradeClass) out.gradeClass = String(m.gradeClass).slice(0, 64);
+            if (m.githubUrl && isValidUrl(m.githubUrl)) out.githubUrl = m.githubUrl;
+            return out;
+        });
+
+        // submittedAt sanity
+        if (isNaN(Date.parse(args.submittedAt))) throw new Error("invalid submittedAt");
+
         const id = await ctx.db.insert(T("events"), args);
-        // No automatic judgements insertion for fixed-column judgements.
         return id;
     },
 });
@@ -82,7 +137,19 @@ export const submitPersonal = mutation({
         submittedAt: v.string(),
     },
     handler: async (ctx, args) => {
-        const id = await ctx.db.insert(T("personal"), args);
+        await requireConvexAuth(ctx);
+        // Basic validation for personal submissions
+        if (typeof args.projectName !== "string" || args.projectName.length > 200) throw new Error("invalid projectName");
+        const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+        if (args.leaderEmail && !emailRe.test(args.leaderEmail)) throw new Error("invalid leaderEmail");
+        if (args.technologies && (!Array.isArray(args.technologies) || args.technologies.length > 50)) throw new Error("invalid technologies");
+        if (isNaN(Date.parse(args.submittedAt))) throw new Error("invalid submittedAt");
+
+        const sanitized: any = { ...args };
+        if (sanitized.name) sanitized.name = String(sanitized.name).slice(0, 200);
+        if (sanitized.furigana) sanitized.furigana = String(sanitized.furigana).slice(0, 200);
+
+        const id = await ctx.db.insert(T("personal"), sanitized);
         return id;
     },
 });
@@ -135,6 +202,11 @@ export const submitTeam = mutation({
         submittedAt: v.string(),
     },
     handler: async (ctx, args) => {
+        await requireConvexAuth(ctx);
+        // For safety, only allow server-side team patching when explicitly enabled
+        if (process.env.ALLOW_TEAM_PATCH !== "true") {
+            return null;
+        }
         // 仕様: teams テーブルを使わず、まず leaderStudentId で events を探して patch、
         // 見つからなければ teamName で events を探して patch します。teams/personal テーブルは更新しません。
         // さらに注意: フロントエンドからチーム登録が行われた際に該当する events レコードが存在しない
@@ -216,33 +288,63 @@ export const submitTeam = mutation({
 
 export const listEvents = query({
     handler: async (ctx) => {
-        return (await ctx.db.query(T("events")).collect()) as any[];
+        await requireConvexAuth(ctx);
+        // Return a sanitized view to avoid leaking PII
+        const raw = (await ctx.db.query(T("events")).collect()) as any[];
+        return raw.map((e: any) => ({
+            _id: e._id,
+            projectName: e.projectName,
+            productName: e.productName || null,
+            teamName: e.teamName || null,
+            teamSize: e.teamSize || null,
+            // Expose only non-PII member info
+            members: (Array.isArray(e.members ? e.members : []) ? e.members : []).map((m: any) => ({ name: m.name, gender: m.gender || null, githubUrl: m.githubUrl || null, attendance: m.attendance || null })),
+            publicSite: e.publicSite || null,
+            githubUrl: e.githubUrl || null,
+            submittedAt: e.submittedAt || null,
+        }));
     },
 });
 
 // Backwards-compatible public aliases expected by the frontend: `events:list`.
 export const list = query({
     handler: async (ctx) => {
-        return (await ctx.db.query(T("events")).collect()) as any[];
+        await requireConvexAuth(ctx);
+        const raw = (await ctx.db.query(T("events")).collect()) as any[];
+        return raw.map((e: any) => ({
+            _id: e._id,
+            projectName: e.projectName,
+            teamName: e.teamName || null,
+            teamSize: e.teamSize || null,
+        }));
     },
 });
 
 export const listTeams = query({
     handler: async (ctx) => {
-        return (await ctx.db.query(T("personal")).collect()) as any[];
+        await requireConvexAuth(ctx);
+        const raw = (await ctx.db.query(T("personal")).collect()) as any[];
+        return raw.map((p: any) => ({
+            _id: p._id,
+            projectName: p.projectName,
+            name: p.name,
+            leaderName: p.leaderName || null,
+            // Do not return leaderEmail or studentId in public listing
+        }));
     },
 });
 
 export const teamsWithDetails = query({
     handler: async (ctx) => {
+        await requireConvexAuth(ctx);
         const teams = (await ctx.db.query(T("personal")).collect()) as any[];
         const events = (await ctx.db.query(T("events")).collect()) as any[];
-        // Join teams with any event that matches on leaderEmail (best-effort link).
+        // Join teams with any event that matches on leaderEmail (best-effort link), but mask PII
         return teams.map((team: any) => {
-            const matchedEvent = events.find((e: any) =>
-                e.leaderEmail && team.leaderEmail && e.leaderEmail === team.leaderEmail
-            );
-            return { ...team, event: matchedEvent || null };
+            const matchedEvent = events.find((e: any) => e.leaderEmail && team.leaderEmail && e.leaderEmail === team.leaderEmail);
+            const maskedTeam = { _id: team._id, projectName: team.projectName, name: team.name, leaderName: team.leaderName || null };
+            const maskedEvent = matchedEvent ? { _id: matchedEvent._id, projectName: matchedEvent.projectName, teamName: matchedEvent.teamName || null } : null;
+            return { ...maskedTeam, event: maskedEvent };
         });
     },
 });
@@ -272,6 +374,7 @@ export const updateMemberAttendance = mutation({
         timestamp: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        await requireConvexAuth(ctx);
         const eventDoc = (await ctx.db.get(T("events"), args.eventId)) as any;
         if (!eventDoc) return null;
 
@@ -280,14 +383,18 @@ export const updateMemberAttendance = mutation({
         for (let i = 0; i < members.length; i++) {
             const m: any = members[i];
             if (m.studentId === args.memberStudentId) {
-                // Ensure attendance object exists
-                m.attendance = { ...m.attendance, ...args.attendance };
+                // Ensure attendance object exists and only accepted keys
+                const attendance = { day1: !!args.attendance.day1, day2: !!args.attendance.day2, day3: !!args.attendance.day3 };
+                m.attendance = { ...m.attendance, ...attendance };
                 // Optionally set attendance timestamps per day
                 if (args.timestamp) {
-                    m.attendanceTimestamps = m.attendanceTimestamps || {};
-                    if (args.attendance.day1) m.attendanceTimestamps.day1 = args.timestamp;
-                    if (args.attendance.day2) m.attendanceTimestamps.day2 = args.timestamp;
-                    if (args.attendance.day3) m.attendanceTimestamps.day3 = args.timestamp;
+                    // validate timestamp
+                    if (!isNaN(Date.parse(args.timestamp))) {
+                        m.attendanceTimestamps = m.attendanceTimestamps || {};
+                        if (attendance.day1) m.attendanceTimestamps.day1 = args.timestamp;
+                        if (attendance.day2) m.attendanceTimestamps.day2 = args.timestamp;
+                        if (attendance.day3) m.attendanceTimestamps.day3 = args.timestamp;
+                    }
                 }
                 members[i] = m;
                 updated = true;

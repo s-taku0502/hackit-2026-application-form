@@ -119,7 +119,8 @@ export default function TeamsCreatePage() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto p-6">
+        <div className="min-h-screen p-4 md:p-8 bg-gradient-to-b from-yellow-50 to-white">
+            <div className="max-w-3xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">チーム登録</h1>
 
             {mounted && teamEnd && now < teamEnd && renderDeadlineCountdown(teamEnd, "チーム登録の締切までの残り時間：")}
@@ -138,7 +139,7 @@ export default function TeamsCreatePage() {
                         />
                     </label>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <label className="block">
                             <span className="block font-medium">リーダー姓</span>
                             <input
@@ -177,7 +178,7 @@ export default function TeamsCreatePage() {
                     {error && <div className="text-red-600">{error}</div>}
 
                     <div>
-                        <button className="px-4 py-2 bg-amber-600 text-white rounded" type="submit">
+                        <button className="px-4 py-2 bg-amber-600 text-white rounded w-full sm:w-auto" type="submit">
                             登録
                         </button>
                     </div>
@@ -202,6 +203,7 @@ export default function TeamsCreatePage() {
                     </ul>
                 )}
             </section>
+            </div>
         </div>
     );
 }
