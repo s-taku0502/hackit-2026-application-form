@@ -167,7 +167,7 @@ export default function EventForm() {
         if (![1, 3, 4, 5].includes(teamSize)) return "チーム人数を選んでください。";
         // require all members' info when team has 3 or more members
         const requiredMembers = teamSize === 1 ? 1 : teamSize;
-            for (let i = 0; i < requiredMembers; i++) {
+        for (let i = 0; i < requiredMembers; i++) {
             const m = members[i];
             if (!m.gradeClass.trim()) return ` ${i + 1}人目の学年・学科・クラスを入力してください。`;
             if (!/^\d{7}$/.test((m.studentId || "").trim())) return ` ${i + 1}人目の学籍番号は半角数字7桁で入力してください。`;
@@ -201,16 +201,16 @@ export default function EventForm() {
         }
 
         // collect only needed members according to teamSize
-            const collected = {
+        const collected = {
             projectName,
             teamSize,
-                members: members.slice(0, teamSize).map((m) => ({
+            members: members.slice(0, teamSize).map((m) => ({
                 gradeClass: m.gradeClass,
                 studentId: m.studentId,
-                    name: `${m.familyName}　${m.givenName}`,
-                    gender: m.gender || undefined,
-                    furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"" ).trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
-                    githubUrl: m.githubUrl || undefined,
+                name: `${m.familyName}　${m.givenName}`,
+                gender: m.gender || undefined,
+                furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily || "").trim()}　${(m.furiganaGiven || "").trim()}` : undefined,
+                githubUrl: m.githubUrl || undefined,
             })),
             // for individual participation, derive leader info from the sole member
             leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
@@ -236,11 +236,11 @@ export default function EventForm() {
                     gender: m.gender,
                     leaderName: collected.leaderName,
                     leaderEmail: collected.leaderEmail,
-                            hasHackathonExperience: hasHackathonExperience,
-                            experienceDetail: experienceDetail,
-                            technologies: technologiesInput
-                                ? technologiesInput.split(/[,\n]+/).map((t) => t.trim()).filter(Boolean)
-                                : undefined,
+                    hasHackathonExperience: hasHackathonExperience,
+                    experienceDetail: experienceDetail,
+                    technologies: technologiesInput
+                        ? technologiesInput.split(/[,\n]+/).map((t) => t.trim()).filter(Boolean)
+                        : undefined,
                     agreements: collected.agreements,
                     allergy: collected.allergy,
                     submittedAt: collected.submittedAt,
@@ -285,7 +285,7 @@ export default function EventForm() {
                 studentId: m.studentId,
                 name: `${m.familyName}　${m.givenName}`,
                 gender: m.gender || undefined,
-                furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||"").trim()}　${(m.furiganaGiven||"").trim()}` : undefined,
+                furigana: (m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily || "").trim()}　${(m.furiganaGiven || "").trim()}` : undefined,
                 githubUrl: m.githubUrl || undefined,
             })),
             leaderIndex: teamSize === 1 ? 0 : leaderIndex + 1,
@@ -311,8 +311,8 @@ export default function EventForm() {
                     gender: m.gender,
                     leaderName: collected.leaderName,
                     leaderEmail: collected.leaderEmail,
-                            hasHackathonExperience: hasHackathonExperience,
-                            experienceDetail: experienceDetail,
+                    hasHackathonExperience: hasHackathonExperience,
+                    experienceDetail: experienceDetail,
                     agreements: collected.agreements,
                     allergy: collected.allergy,
                     submittedAt: collected.submittedAt,
@@ -450,23 +450,23 @@ export default function EventForm() {
                                     <input
                                         type="checkbox"
                                         checked={leaderIndex === idx}
-                                                onChange={() => {
-                                                    if (leaderIndex === idx) {
-                                                        // uncheck
-                                                        setLeaderIndex(-1);
-                                                        setLeaderName("");
-                                                        setLeaderEmail("");
-                                                    } else {
-                                                        setLeaderIndex(idx);
-                                                        // combine family/given into leader name
-                                                        const fam = members[idx].familyName || "";
-                                                        const giv = members[idx].givenName || "";
-                                                        if (fam || giv) setLeaderName(`${fam}　${giv}`.trim());
-                                                        const sid = members[idx].studentId?.trim();
-                                                        if (sid) setLeaderEmail(`c${sid}@st.kanazawa-it.ac.jp`);
-                                                        else setLeaderEmail("");
-                                                    }
-                                                }}
+                                        onChange={() => {
+                                            if (leaderIndex === idx) {
+                                                // uncheck
+                                                setLeaderIndex(-1);
+                                                setLeaderName("");
+                                                setLeaderEmail("");
+                                            } else {
+                                                setLeaderIndex(idx);
+                                                // combine family/given into leader name
+                                                const fam = members[idx].familyName || "";
+                                                const giv = members[idx].givenName || "";
+                                                if (fam || giv) setLeaderName(`${fam}　${giv}`.trim());
+                                                const sid = members[idx].studentId?.trim();
+                                                if (sid) setLeaderEmail(`c${sid}@st.kanazawa-it.ac.jp`);
+                                                else setLeaderEmail("");
+                                            }
+                                        }}
                                         className="w-5 h-5 mr-2 accent-amber-500"
                                     />
                                     <span>リーダーにチェック</span>
@@ -755,6 +755,7 @@ export default function EventForm() {
                 </h3>
                 <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
                     <p className="text-amber-900 font-semibold mb-3">食物アレルギーの有無</p>
+                    <p className="text-amber-600 text-sm mb-2">※イベント最終日の懇親会で食事が出ます。</p>
                     <div className="flex items-center gap-4">
                         <label className="flex items-center cursor-pointer">
                             <input
@@ -792,7 +793,7 @@ export default function EventForm() {
             </section>
 
             {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <button
                     type="button"
                     onClick={openPreview}
@@ -818,11 +819,10 @@ export default function EventForm() {
 
             {/* Result Message */}
             {submitResult && (
-                <div className={`p-4 rounded-lg text-center font-semibold ${
-                    submitResult.includes("送信されました")
+                <div className={`p-4 rounded-lg text-center font-semibold ${submitResult.includes("送信されました")
                         ? "bg-green-100 text-green-800 border-2 border-green-400"
                         : "bg-red-100 text-red-800 border-2 border-red-400"
-                }`}>
+                    }`}>
                     {submitResult}
                 </div>
             )}
@@ -837,9 +837,9 @@ export default function EventForm() {
                             <div>
                                 <strong>メンバー:</strong>
                                 <ul className="list-disc pl-6">
-                                            {members.slice(0, teamSize).map((m, i) => (
-                                                <li key={i}>{`${i + 1}人目 — ${m.gradeClass || '—'} / ${m.studentId || '—'} / ${(m.familyName || '—')}　${(m.givenName || '—')} / ${(m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily||'').trim()}　${(m.furiganaGiven||'').trim()}` : '—'} / ${m.githubUrl || '—'}`}</li>
-                                            ))}
+                                    {members.slice(0, teamSize).map((m, i) => (
+                                        <li key={i}>{`${i + 1}人目 — ${m.gradeClass || '—'} / ${m.studentId || '—'} / ${(m.familyName || '—')}　${(m.givenName || '—')} / ${(m.furiganaFamily || m.furiganaGiven) ? `${(m.furiganaFamily || '').trim()}　${(m.furiganaGiven || '').trim()}` : '—'} / ${m.githubUrl || '—'}`}</li>
+                                    ))}
                                 </ul>
                             </div>
                             <p><strong>リーダー名:</strong> {teamSize === 1 ? ((members[0]?.familyName || members[0]?.givenName) ? `${members[0]?.familyName || ''}　${members[0]?.givenName || ''}`.trim() : '—') : (leaderName || '—')}</p>
@@ -849,7 +849,7 @@ export default function EventForm() {
                                 <>
                                     <p><strong>ハッカソン経験:</strong> {hasHackathonExperience === 'yes' ? 'あり' : 'なし'}</p>
                                     {hasHackathonExperience === 'yes' && <p><strong>経験詳細:</strong> {experienceDetail || '—'}</p>}
-                                    <p><strong>触ったことのある技術:</strong> {technologiesInput ? technologiesInput.split(/[,\n]+/).map(t=>t.trim()).filter(Boolean).join(', ') : '—'}</p>
+                                    <p><strong>触ったことのある技術:</strong> {technologiesInput ? technologiesInput.split(/[,\n]+/).map(t => t.trim()).filter(Boolean).join(', ') : '—'}</p>
                                 </>
                             )}
                             <p><strong>チーム説明:</strong> {teamSize === 1 ? '（個人参加のため表示なし）' : (teamDescription || '—')}</p>
