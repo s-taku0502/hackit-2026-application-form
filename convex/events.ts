@@ -32,6 +32,7 @@ export const submitEvent = mutation({
         hasFirstYear: v.string(),
         teamDescription: v.string(),
         teamName: v.optional(v.string()),
+        teamPassphrase: v.optional(v.string()),
         githubUrl: v.optional(v.string()),
         githubUrlBackup: v.optional(v.string()),
         publicSite: v.optional(v.string()),
@@ -118,6 +119,7 @@ export const submitTeam = mutation({
         leaderIndex: v.optional(v.number()),
         hasFirstYear: v.optional(v.string()),
         teamDescription: v.optional(v.string()),
+        teamPassphrase: v.optional(v.string()),
         attendance: v.optional(
             v.object({ day1: v.boolean(), day2: v.boolean(), day3: v.boolean() })
         ),
@@ -135,6 +137,8 @@ export const submitTeam = mutation({
     handler: async (ctx, args) => {
         // 仕様: teams テーブルを使わず、まず leaderStudentId で events を探して patch、
         // 見つからなければ teamName で events を探して patch します。teams/personal テーブルは更新しません。
+        // さらに注意: フロントエンドからチーム登録が行われた際に該当する events レコードが存在しない
+        // 場合、環境変数 `ALLOW_TEAM_PATCH` が "true" のときのみ最小限のイベントを挿入して永続化します。
         let patchedEventId: string | null = null;
 
         if (args.leaderStudentId) {
@@ -146,6 +150,7 @@ export const submitTeam = mutation({
                 const patchData: Record<string, any> = {};
                 if (args.teamName) patchData.teamName = args.teamName;
                 if (args.productName) patchData.productName = args.productName;
+                if (args.teamPassphrase) patchData.teamPassphrase = args.teamPassphrase;
                 if (args.leaderName) patchData.leaderName = args.leaderName;
                 if (args.leaderEmail) patchData.leaderEmail = args.leaderEmail;
                 if (args.githubUrl) patchData.githubUrl = args.githubUrl;
@@ -165,6 +170,7 @@ export const submitTeam = mutation({
             if (matchedByTeam) {
                 const patchData: Record<string, any> = {};
                 if (args.leaderName) patchData.leaderName = args.leaderName;
+                if (args.teamPassphrase) patchData.teamPassphrase = args.teamPassphrase;
                 if (args.leaderEmail) patchData.leaderEmail = args.leaderEmail;
                 if (args.githubUrl) patchData.githubUrl = args.githubUrl;
                 if (args.githubUrlBackup) patchData.githubUrlBackup = args.githubUrlBackup;
@@ -175,6 +181,32 @@ export const submitTeam = mutation({
                     patchedEventId = matchedByTeam._id;
                 }
             }
+        }
+
+        // マッチしなかった場合、必要に応じて最小限のイベントを挿入して永続化する。
+        if (!patchedEventId && process.env.ALLOW_TEAM_PATCH === "true") {
+            const members = Array.isArray(args.members) && args.members.length > 0
+                ? args.members
+                : args.leaderStudentId
+                ? [{ gradeClass: "", studentId: args.leaderStudentId, name: args.leaderName || "", gender: undefined }]
+                : [];
+
+            const minimalEvent: Record<string, any> = {
+                teamName: args.teamName,
+                productName: args.productName || null,
+                teamPassphrase: args.teamPassphrase || null,
+                leaderName: args.leaderName || null,
+                leaderEmail: args.leaderEmail || null,
+                githubUrl: args.githubUrl || null,
+                githubUrlBackup: args.githubUrlBackup || null,
+                publicSite: args.publicSite || null,
+                publicSiteBackup: args.publicSiteBackup || null,
+                members,
+                submittedAt: args.submittedAt || new Date().toISOString(),
+            };
+
+            const insertedId = await ctx.db.insert(T("events"), minimalEvent as any);
+            return insertedId;
         }
 
         // patchedEventId を返す（teams テーブルは使わない設計）。

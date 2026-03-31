@@ -32,6 +32,7 @@ export default defineSchema({
         teamDescription: v.string(),
         productName: v.optional(v.string()),
         teamName: v.optional(v.string()),
+        teamPassphrase: v.optional(v.string()),
         githubUrl: v.optional(v.string()),
         githubUrlBackup: v.optional(v.string()),
         publicSite: v.optional(v.string()),
@@ -78,6 +79,7 @@ export default defineSchema({
     ["teams" + YEAR]: defineTable({
         teamName: v.string(),
         leaderName: v.optional(v.string()),
+        teamPassphrase: v.optional(v.string()),
         leaderStudentId: v.optional(v.string()),
         leaderEmail: v.optional(v.string()),
         githubUrl: v.optional(v.string()),
