@@ -18,16 +18,21 @@
 各シートの最初の行にヘッダーを入力：
 
 **Events シート:**
+
+以下のカラムを作成してください（メンバー情報は最大5名分まで対応）：
+
 ```
-submittedAt | projectName | teamSize | leaderName | leaderEmail | hasFirstYear | teamDescription | members | agreements | allergy | productName | teamPassphrase | githubUrl | githubUrlBackup | publicSite | publicSiteBackup
+submittedAt | projectName | teamSize | leaderName | leaderEmail | hasFirstYear | teamDescription | agreements | allergy | member01_class | member01_number | member01_name | member01_furigana | member01_githubUrl | member01_gender | member02_class | member02_number | member02_name | member02_furigana | member02_githubUrl | member02_gender | member03_class | member03_number | member03_name | member03_furigana | member03_githubUrl | member03_gender | member04_class | member04_number | member04_name | member04_furigana | member04_githubUrl | member04_gender | member05_class | member05_number | member05_name | member05_furigana | member05_githubUrl | member05_gender | productName | teamPassphrase | githubUrl | githubUrlBackup | publicSite | publicSiteBackup
 ```
 
 **Personal シート:**
+
 ```
-submittedAt | projectName | name | studentId | gradeClass | leaderEmail | hasHackathonExperience | experienceDetail | technologies | agreements | allergy
+submittedAt | projectName | gradeClass | studentId | name | furigana | gender | leaderName | leaderEmail | hasHackathonExperience | experienceDetail | technologies | agreements | allergy
 ```
 
 **Settings シート:**
+
 ```
 eventApplicationStart | 2026-01-01T00:00:00.000Z
 eventApplicationEnd | 2026-12-31T23:59:59.000Z
@@ -73,6 +78,42 @@ submissionDeadline | 2026-12-31T23:59:59.000Z
 2. フォームにテストデータを入力
 3. 送信ボタンをクリック
 4. Google Sheets でスプレッドシートを開いて、データが保存されているか確認
+
+## データ構造の詳細
+
+### Events シート（チーム申し込み）
+
+メンバー情報は以下のように個別カラムに展開されます：
+
+- **member01_class**: メンバー1の学年クラス
+- **member01_number**: メンバー1の学籍番号
+- **member01_name**: メンバー1の名前
+- **member01_furigana**: メンバー1のふりがな
+- **member01_githubUrl**: メンバー1の GitHub URL
+- **member01_gender**: メンバー1の性別
+
+同様に `member02` から `member05` まで存在します。
+
+入力人数によっては、一部のカラムが空のままになります（問題ありません）。
+
+### Personal シート（個人申し込み）
+
+個人申し込みの場合、以下のフィールドが保存されます：
+
+- **submittedAt**: 申し込み日時
+- **projectName**: プロジェクト名
+- **gradeClass**: 学年クラス
+- **studentId**: 学籍番号
+- **name**: 名前
+- **furigana**: ふりがな
+- **gender**: 性別
+- **leaderName**: リーダー名
+- **leaderEmail**: リーダーメール
+- **hasHackathonExperience**: ハッカソン経験有無
+- **experienceDetail**: 経験詳細
+- **technologies**: 使用技術（JSON形式）
+- **agreements**: 同意情報（JSON形式）
+- **allergy**: アレルギー情報（JSON形式）
 
 ## よくあるエラーと解決方法
 

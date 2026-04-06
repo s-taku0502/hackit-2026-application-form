@@ -80,12 +80,27 @@ function doGet(e) {
 
 /**
  * チーム申し込みデータを保存
+ * メンバー情報を個別カラムに展開（member01_class, member01_number, member01_name, member01_furigana, member01_githubUrl, member01_gender ... member05_gender）
  */
 function saveEventData(data) {
   try {
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Events');
     if (!sheet) {
       return { ok: false, error: 'Events sheet not found' };
+    }
+
+    // メンバー情報を個別カラムに展開
+    const memberColumns = [];
+    for (let i = 1; i <= 5; i++) {
+      const member = data.members && data.members[i - 1] ? data.members[i - 1] : {};
+      memberColumns.push(
+        member.gradeClass || '',
+        member.studentId || '',
+        member.name || '',
+        member.furigana || '',
+        member.githubUrl || '',
+        member.gender || ''
+      );
     }
 
     const row = [
@@ -96,9 +111,9 @@ function saveEventData(data) {
       data.leaderEmail,
       data.hasFirstYear,
       data.teamDescription,
-      JSON.stringify(data.members),
       JSON.stringify(data.agreements),
       JSON.stringify(data.allergy),
+      ...memberColumns,
     ];
 
     sheet.appendRow(row);
@@ -112,6 +127,7 @@ function saveEventData(data) {
 
 /**
  * 個人申し込みデータを保存
+ * ふりがなフィールドを含む
  */
 function savePersonalData(data) {
   try {
@@ -123,9 +139,12 @@ function savePersonalData(data) {
     const row = [
       data.submittedAt,
       data.projectName,
-      data.name,
-      data.studentId,
       data.gradeClass,
+      data.studentId,
+      data.name,
+      data.furigana,
+      data.gender,
+      data.leaderName,
       data.leaderEmail,
       data.hasHackathonExperience,
       data.experienceDetail,
@@ -166,8 +185,9 @@ function updateTeamData(data) {
     }
 
     if (rowIndex !== -1) {
-      // 既存行を更新
-      const range = sheet.getRange(rowIndex, 11, 1, 6); // K列から6列分
+      // 既存行を更新（プロダクト情報など）
+      // 列の位置は Events シートの構成に応じて調整
+      const range = sheet.getRange(rowIndex, 31, 1, 6); // AA列から6列分
       range.setValues([[
         data.productName || '',
         data.teamPassphrase || '',
@@ -179,6 +199,19 @@ function updateTeamData(data) {
       Logger.log('Team data updated successfully');
     } else {
       // 新規行を追加
+      const memberColumns = [];
+      for (let i = 1; i <= 5; i++) {
+        const member = data.members && data.members[i - 1] ? data.members[i - 1] : {};
+        memberColumns.push(
+          member.gradeClass || '',
+          member.studentId || '',
+          member.name || '',
+          member.furigana || '',
+          member.githubUrl || '',
+          member.gender || ''
+        );
+      }
+
       const row = [
         data.submittedAt,
         data.teamName,
@@ -187,9 +220,9 @@ function updateTeamData(data) {
         data.leaderEmail,
         '', // hasFirstYear
         '', // teamDescription
-        '', // members
         '', // agreements
         '', // allergy
+        ...memberColumns,
         data.productName || '',
         data.teamPassphrase || '',
         data.githubUrl || '',

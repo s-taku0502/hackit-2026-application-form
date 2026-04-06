@@ -19,16 +19,27 @@ Google Sheets API の複雑な認証設定の代わりに、Google Apps Script (
 スプレッドシート内に以下の3つのシートを作成してください：
 
 **Events シート** - チーム申し込みデータ用
-| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| submittedAt | projectName | teamSize | leaderName | leaderEmail | hasFirstYear | teamDescription | members | agreements | allergy | productName | teamPassphrase | githubUrl | githubUrlBackup | publicSite | publicSiteBackup |
+
+| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T | U | V | W | X | Y | Z | AA | AB | AC | AD | AE |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| submittedAt | projectName | teamSize | leaderName | leaderEmail | hasFirstYear | teamDescription | agreements | allergy | member01_class | member01_number | member01_name | member01_furigana | member01_githubUrl | member01_gender | member02_class | member02_number | member02_name | member02_furigana | member02_githubUrl | member02_gender | member03_class | member03_number | member03_name | member03_furigana | member03_githubUrl | member03_gender | member04_class | member04_number | member04_name | member04_furigana |
+
+| AF | AG | AH | AI | AJ | AK | AL | AM | AN | AO | AP | AQ |
+|----|----|----|----|----|----|----|----|----|----|----|---|
+| member04_githubUrl | member04_gender | member05_class | member05_number | member05_name | member05_furigana | member05_githubUrl | member05_gender | productName | teamPassphrase | githubUrl | githubUrlBackup |
+
+| AR | AS |
+|----|---|
+| publicSite | publicSiteBackup |
 
 **Personal シート** - 個人申し込みデータ用
-| A | B | C | D | E | F | G | H | I | J | K |
-|---|---|---|---|---|---|---|---|---|---|---|
-| submittedAt | projectName | name | studentId | gradeClass | leaderEmail | hasHackathonExperience | experienceDetail | technologies | agreements | allergy |
+
+| A | B | C | D | E | F | G | H | I | J | K | L | M | N |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| submittedAt | projectName | gradeClass | studentId | name | furigana | gender | leaderName | leaderEmail | hasHackathonExperience | experienceDetail | technologies | agreements | allergy |
 
 **Settings シート** - 設定情報用
+
 | A | B |
 |---|---|
 | eventApplicationStart | 2026-01-01T00:00:00.000Z |
