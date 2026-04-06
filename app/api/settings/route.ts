@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server';
 
 const GAS_WEBAPP_URL = process.env.GAS_WEBAPP_URL;
 
+// 日本時間（JST）のタイムゾーンオフセット（+9時間）
+const JST_OFFSET = 9 * 60 * 60 * 1000;
+
+/**
+ * ISO 8601 文字列を日本時間の Date オブジェクトに変換
+ */
+function parseJSTDate(isoString: string): Date {
+  const utcDate = new Date(isoString);
+  return new Date(utcDate.getTime() + JST_OFFSET);
+}
+
 export async function GET() {
   // 開発環境では、環境変数が設定されていない場合、モックデータを返す
   if (process.env.NODE_ENV !== 'production' && !GAS_WEBAPP_URL) {
@@ -35,7 +46,23 @@ export async function GET() {
     }
 
     const result = await response.json();
-    return NextResponse.json(result.data || { enabled: false });
+    const settings = result.data || { enabled: false };
+
+    // 日時フィールドが ISO 8601 形式であることを確認
+    if (settings.eventApplicationStart) {
+      settings.eventApplicationStart = new Date(settings.eventApplicationStart).toISOString();
+    }
+    if (settings.eventApplicationEnd) {
+      settings.eventApplicationEnd = new Date(settings.eventApplicationEnd).toISOString();
+    }
+    if (settings.teamRegistrationEnd) {
+      settings.teamRegistrationEnd = new Date(settings.teamRegistrationEnd).toISOString();
+    }
+    if (settings.submissionDeadline) {
+      settings.submissionDeadline = new Date(settings.submissionDeadline).toISOString();
+    }
+
+    return NextResponse.json(settings);
 
   } catch (error: any) {
     console.error('Settings API Error:', error.message);

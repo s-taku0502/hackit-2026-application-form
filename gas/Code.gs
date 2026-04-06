@@ -12,6 +12,9 @@ const ALLOWED_ORIGINS = [
   // 'https://your-domain.com'
 ];
 
+// 日本時間（JST）のタイムゾーン
+const JST_TIMEZONE = 'Asia/Tokyo';
+
 /**
  * POST リクエストを処理する
  * @param {Object} e - イベントオブジェクト
@@ -79,8 +82,25 @@ function doGet(e) {
 }
 
 /**
+ * UTC の ISO 8601 文字列を日本時間の日時文字列に変換
+ * @param {string} isoString - ISO 8601 形式の文字列（例：2026-04-07T15:30:40.000Z）
+ * @returns {string} 日本時間の文字列（例：2026/04/07 15:30:40）
+ */
+function convertToJST(isoString) {
+  if (!isoString) return '';
+  try {
+    const date = new Date(isoString);
+    const jstDate = Utilities.formatDate(date, JST_TIMEZONE, 'yyyy/MM/dd HH:mm:ss');
+    return jstDate;
+  } catch (error) {
+    Logger.log('Error converting to JST:', error.toString());
+    return isoString;
+  }
+}
+
+/**
  * チーム申し込みデータを保存
- * Events シートのカラム順序（A～AS）:
+ * Events シートのカラム順序（A～AW）:
  * A: submittedAt
  * B: projectName
  * C: teamSize
@@ -127,9 +147,9 @@ function saveEventData(data) {
       );
     }
 
-    // 基本情報 (A-M)
+    // 基本情報 (A-M) - submittedAt は日本時間に変換
     const baseData = [
-      data.submittedAt,
+      convertToJST(data.submittedAt),  // 日本時間に変換
       data.projectName,
       data.teamSize,
       data.leaderName,
@@ -168,7 +188,7 @@ function saveEventData(data) {
 
 /**
  * 個人申し込みデータを保存
- * Personal シートのカラム順序（A～N）:
+ * Personal シートのカラム順序（A～R）:
  * A: submittedAt
  * B: projectName
  * C: gradeClass
@@ -199,7 +219,7 @@ function savePersonalData(data) {
     const technologiesStr = Array.isArray(data.technologies) ? data.technologies.join(', ') : '';
 
     const row = [
-      data.submittedAt,
+      convertToJST(data.submittedAt),  // 日本時間に変換
       data.projectName,
       data.gradeClass,
       data.studentId,
@@ -279,7 +299,7 @@ function updateTeamData(data) {
       }
 
       const baseData = [
-        data.submittedAt,
+        convertToJST(data.submittedAt),
         data.teamName,
         '', // teamSize
         data.leaderName,
@@ -352,6 +372,9 @@ function getTeams() {
 
 /**
  * 設定情報を取得
+ * Settings シートは横並び構成（1行目がキー、2行目が値）
+ * A1: eventApplicationStart, B1: eventApplicationEnd, C1: teamRegistrationEnd, D1: submissionDeadline
+ * A2: 2026-01-01T00:00:00Z, B2: 2026-12-31T23:59:59Z, C2: ..., D2: ...
  */
 function getSettings() {
   try {
@@ -361,22 +384,47 @@ function getSettings() {
     }
 
     const values = sheet.getDataRange().getValues();
+    if (values.length < 2) {
+      return { ok: false, error: 'Settings sheet is empty' };
+    }
+
+    // 1行目がキー、2行目が値の横並び構成
+    const keys = values[0];
+    const vals = values[1];
+
     const settings = { enabled: true };
 
-    // キーと値のペアをオブジェクトに変換
-    for (let i = 0; i < values.length; i++) {
-      const key = values[i][0];
-      let value = values[i][1];
+    // キーと値をマッピング
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      let value = vals[i];
 
-      // 値が "true"/"false" の場合は boolean に変換
-      if (value === 'true') value = true;
-      if (value === 'false') value = false;
+      if (!key) continue;
 
-      if (key) {
+      // 日時文字列の場合、ISO 8601 形式に統一
+      if (typeof value === 'string' && (key.includes('Start') || key.includes('End') || key.includes('Deadline'))) {
+        // 既に ISO 8601 形式の場合はそのまま使用
+        if (value.includes('T')) {
+          settings[key] = value;
+        } else {
+          // 日本時間の文字列の場合は ISO 8601 に変換
+          try {
+            const date = new Date(value);
+            settings[key] = date.toISOString();
+          } catch (e) {
+            Logger.log('Error parsing date:', value);
+            settings[key] = value;
+          }
+        }
+      } else {
+        // 値が "true"/"false" の場合は boolean に変換
+        if (value === 'true') value = true;
+        if (value === 'false') value = false;
         settings[key] = value;
       }
     }
 
+    Logger.log('Settings retrieved:', settings);
     return { ok: true, data: settings };
   } catch (error) {
     Logger.log('Error getting settings:', error.toString());
