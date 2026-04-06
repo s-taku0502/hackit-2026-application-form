@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { appendToSheet, getSheetValues, updateSheetRow } from '../google-sheets';
 
-const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID!;
+const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { type, data } = body;
+
+    if (!SPREADSHEET_ID) {
+      console.warn('GOOGLE_SHEET_ID not configured. Data will not be persisted.');
+      return NextResponse.json({ ok: true, warning: 'Google Sheets not configured' });
+    }
 
     if (type === 'event') {
       // チーム申し込み
@@ -47,7 +52,7 @@ export async function POST(request: Request) {
       // チーム情報更新（プロダクト登録など）
       // まず既存のデータを取得して、該当するチームを探す
       const rows = await getSheetValues(SPREADSHEET_ID, 'Events!A:Z');
-      if (rows) {
+      if (rows && rows.length > 0) {
         const teamNameIndex = 1; // 仮にB列がチーム名（またはプロジェクト名）とする
         const rowIndex = rows.findIndex(row => row[teamNameIndex] === data.teamName);
         
@@ -91,15 +96,20 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error: any) {
-    console.error('Google Sheets Error:', error);
+    console.error('Submit API Error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
 
 export async function GET() {
   try {
+    if (!SPREADSHEET_ID) {
+      console.warn('GOOGLE_SHEET_ID not configured. Returning empty list.');
+      return NextResponse.json([]);
+    }
+
     const rows = await getSheetValues(SPREADSHEET_ID, 'Events!A:Z');
-    if (!rows) return NextResponse.json([]);
+    if (!rows || rows.length === 0) return NextResponse.json([]);
     
     // ヘッダーを除いてオブジェクト形式に変換
     const headers = rows[0];
@@ -113,6 +123,7 @@ export async function GET() {
     
     return NextResponse.json(data);
   } catch (error: any) {
+    console.error('Submit GET API Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
