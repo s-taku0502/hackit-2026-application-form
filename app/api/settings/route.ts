@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getSheetValues } from '../google-sheets';
 
-const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID!;
+const GAS_WEBAPP_URL = process.env.GAS_WEBAPP_URL;
 
 export async function GET() {
   // 開発環境では、環境変数が設定されていない場合、モックデータを返す
-  if (process.env.NODE_ENV !== 'production' && !process.env.GOOGLE_SHEET_ID) {
+  if (process.env.NODE_ENV !== 'production' && !GAS_WEBAPP_URL) {
     console.log('Development mode: Returning mock settings.');
     return NextResponse.json({
       enabled: true,
@@ -17,28 +16,29 @@ export async function GET() {
   }
 
   try {
-    // スプレッドシートの 'Settings' シートから設定を取得
-    const rows = await getSheetValues(SPREADSHEET_ID, 'Settings!A:B');
-    
-    if (!rows || rows.length === 0) {
+    if (!GAS_WEBAPP_URL) {
       return NextResponse.json({ enabled: false });
     }
 
-    const settings: any = { enabled: true };
-    rows.forEach(row => {
-      if (row[0] && row[1]) {
-        // 値が "true"/"false" の場合は boolean に変換
-        let value: any = row[1];
-        if (value === 'true') value = true;
-        if (value === 'false') value = false;
-        settings[row[0]] = value;
-      }
+    // GAS Web アプリから設定情報を取得
+    const response = await fetch(GAS_WEBAPP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ type: 'get_settings' }),
     });
 
-    return NextResponse.json(settings);
-  } catch (error) {
-    console.error('Settings API Error:', error);
-    // エラー時はデフォルト設定を返すか、enabled: false を返す
+    if (!response.ok) {
+      console.error(`GAS Web App responded with status ${response.status}`);
+      return NextResponse.json({ enabled: false });
+    }
+
+    const result = await response.json();
+    return NextResponse.json(result.data || { enabled: false });
+
+  } catch (error: any) {
+    console.error('Settings API Error:', error.message);
     return NextResponse.json({ enabled: false });
   }
 }
