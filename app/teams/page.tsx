@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import useSettings from "../hooks/useSettings";
+import Countdown from "../components/Countdown";
 // import { useQuery, useMutation } from "convex/react";
 // import { api } from "../../convex/_generated/api";
 
 export default function TeamsCreatePage() {
-    const settings = useSettings();
+    const { settings, phase } = useSettings();
     const [teamName, setTeamName] = useState("");
     const [productName, setProductName] = useState("");
     const [leaderFamilyName, setLeaderFamilyName] = useState("");
@@ -26,49 +27,13 @@ export default function TeamsCreatePage() {
         return () => clearInterval(t);
     }, []);
 
-    function parseSettingDate(s: any, key: string): Date | null {
-        if (!s) return null;
-        const v = s[key];
-        if (!v) return null;
-        const d = new Date(v);
-        return isNaN(d.getTime()) ? null : d;
-    }
+    const appStart = settings?.eventApplicationStart ? new Date(settings.eventApplicationStart) : null;
+    const teamEnd = settings?.teamRegistrationEnd ? new Date(settings.teamRegistrationEnd) : null;
+    const isDevelopment = settings?.isDevelopment === true;
 
-    const appStart = parseSettingDate(settings, "eventApplicationStart");
-    const appEnd = parseSettingDate(settings, "eventApplicationEnd");
-    const teamEnd = parseSettingDate(settings, "teamRegistrationEnd");
     // Only evaluate time-based conditions after client mount to avoid SSR/CSR mismatch
-    const beforeStart = mounted && appStart && now < appStart;
-    const afterTeamEnd = mounted && teamEnd && now > teamEnd;
-
-    function renderCountdown(target: Date) {
-        const diff = Math.max(0, target.getTime() - now.getTime());
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / (1000 * 60)) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
-        return (
-            <div className="p-6 bg-yellow-50 border border-yellow-200 rounded text-center">
-                <p className="text-lg font-semibold">チーム登録はまだ開始されていません。</p>
-                <p className="mt-2">開始までの残り時間：</p>
-                <div className="mt-3 text-2xl font-mono">{`${days}日 ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`}</div>
-            </div>
-        );
-    }
-
-    function renderDeadlineCountdown(target: Date, label: string) {
-        const diff = Math.max(0, target.getTime() - now.getTime());
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / (1000 * 60)) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
-        return (
-            <div className="p-4 bg-sky-50 border border-sky-200 rounded text-center mb-4">
-                <p className="text-sm text-slate-700">{label}</p>
-                <div className="mt-2 text-xl font-mono">{`${days}日 ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`}</div>
-            </div>
-        );
-    }
+    const beforeStart = !isDevelopment && mounted && phase === "before";
+    const afterTeamEnd = !isDevelopment && mounted && (phase === "submission" || phase === "after");
 
     // const submitTeamMutation = useMutation(api.events.submitTeam);
     const submitTeamMutation = async (data: any) => {
@@ -122,14 +87,22 @@ export default function TeamsCreatePage() {
     }
 
     if (beforeStart && appStart) {
-        return <div className="max-w-3xl mx-auto p-6">{renderCountdown(appStart)}</div>;
-    }
-    if (afterTeamEnd && teamEnd) {
         return (
             <div className="max-w-3xl mx-auto p-6">
-                <div className="p-6 bg-red-50 border border-red-200 rounded">
-                    <h1 className="text-2xl font-bold mb-4">チーム登録</h1>
-                    <p>申し込みは終了しました。詳細は運営までお問い合わせください。</p>
+                <Countdown targetDate={appStart} title="チーム登録開始まで" message="チーム登録はまだ開始されていません。" />
+            </div>
+        );
+    }
+    if (afterTeamEnd) {
+        return (
+            <div className="max-w-3xl mx-auto p-6">
+                <div className="p-8 bg-white rounded-xl shadow-sm border border-amber-100 text-center">
+                    <h1 className="text-2xl font-bold text-amber-900 mb-4">チーム登録は終了しました</h1>
+                    <p className="text-amber-700 mb-6">現在はプロダクト提出期間、またはすべての期間が終了しています。</p>
+                    <div className="flex flex-col sm:flex-row justify-center gap-4">
+                        <a href="/" className="px-6 py-3 bg-amber-100 text-amber-900 rounded-lg font-bold hover:bg-amber-200 transition-colors">トップへ</a>
+                        <a href="/submissions" className="px-6 py-3 bg-amber-500 text-white rounded-lg font-bold hover:bg-amber-600 transition-colors">プロダクト提出へ</a>
+                    </div>
                 </div>
             </div>
         );
@@ -138,9 +111,17 @@ export default function TeamsCreatePage() {
     return (
         <div className="min-h-screen p-4 md:p-8 bg-gradient-to-b from-yellow-50 to-white">
             <div className="max-w-3xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-4">チーム登録</h1>
+            <h1 className="text-2xl font-bold mb-4 text-amber-900">チーム登録</h1>
 
-            {mounted && teamEnd && now < teamEnd && renderDeadlineCountdown(teamEnd, "チーム登録の締切までの残り時間：")}
+            {isDevelopment && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm font-semibold text-center">
+                    🔧 開発モード: 自動リダイレクトと期間制限が無視されています
+                </div>
+            )}
+
+            {!isDevelopment && mounted && teamEnd && phase === "registration" && (
+                <Countdown targetDate={teamEnd} title="チーム登録締切まで" />
+            )}
 
             {submitted ? (
                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded">チーム情報を登録しました。</div>

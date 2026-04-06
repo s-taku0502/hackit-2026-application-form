@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 // import { useMutation } from "convex/react";
 // import { api } from "../../convex/_generated/api";
 import useSettings from "../hooks/useSettings";
+import Countdown from "./Countdown";
 
 type Member = { gradeClass: string; studentId: string; familyName: string; givenName: string; furiganaFamily?: string; furiganaGiven?: string; gender?: string; githubUrl?: string };
 
@@ -382,15 +383,22 @@ export default function EventForm() {
 
     // If settings contain explicit application window, enforce it.
     if (beforeStart && appStart) {
-        return <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">{renderCountdown(appStart)}</div>;
-    }
-    if (afterEnd && appEnd) {
         return (
-            <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 p-6">
-                <div className="p-6 bg-red-50 border border-red-200 rounded">
-                    <h2 className="text-lg font-semibold">申し込みは終了しました。</h2>
-                    <p className="mt-2">不明点があれば下記問い合わせ先へお問い合わせください。</p>
-                    <p className="mt-2 text-sm">問い合わせ: <a href="https://x.com/HacKit_KIT" className="underline">@HacKit_KIT</a></p>
+            <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <Countdown targetDate={appStart} title="申し込み開始まで" message="申し込みはまだ開始されていません。" />
+            </div>
+        );
+    }
+    if (afterEnd) {
+        return (
+            <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div className="p-8 bg-white rounded-xl shadow-sm border border-amber-100 text-center">
+                    <h2 className="text-2xl font-bold text-amber-900 mb-4">申し込みは終了しました</h2>
+                    <p className="text-amber-700 mb-6">現在はチーム登録またはプロダクト提出期間です。適切なページへ移動してください。</p>
+                    <div className="flex flex-col sm:flex-row justify-center gap-4">
+                        <a href="/teams" className="px-6 py-3 bg-amber-500 text-white rounded-lg font-bold hover:bg-amber-600 transition-colors">チーム登録へ</a>
+                        <a href="/submissions" className="px-6 py-3 bg-amber-100 text-amber-900 rounded-lg font-bold hover:bg-amber-200 transition-colors">プロダクト提出へ</a>
+                    </div>
                 </div>
             </div>
         );
@@ -401,10 +409,13 @@ export default function EventForm() {
             {/* Header Section */}
             <div className="mb-8 text-center">
                 {isDevelopment && (
-                    <div className="mb-2 text-sm text-blue-700 font-semibold">🔧 開発モード: 申し込み期間の制限が無視されています</div>
+                    <div className="mb-2 text-sm text-blue-700 font-semibold">🔧 開発モード: 自動リダイレクトと期間制限が無視されています</div>
                 )}
                 {settings && (settings as any).enabled === false && (
                     <div className="mb-2 text-sm text-amber-700">開発環境: 運営設定は無効です</div>
+                )}
+                {!isDevelopment && appEnd && (
+                    <Countdown targetDate={appEnd} title="申し込み終了まで" />
                 )}
                 <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-amber-900">HacKit 2026</h2>
                 <h3 className="text-xl sm:text-2xl font-semibold mb-4 text-amber-800">イベント申し込みフォーム</h3>
