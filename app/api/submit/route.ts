@@ -50,15 +50,12 @@ export async function POST(request: Request) {
       await appendToSheet(SPREADSHEET_ID, 'Personal!A:K', values);
     } else if (type === 'team_update') {
       // チーム情報更新（プロダクト登録など）
-      // まず既存のデータを取得して、該当するチームを探す
       const rows = await getSheetValues(SPREADSHEET_ID, 'Events!A:Z');
       if (rows && rows.length > 0) {
-        const teamNameIndex = 1; // 仮にB列がチーム名（またはプロジェクト名）とする
+        const teamNameIndex = 1; // B列がチーム名
         const rowIndex = rows.findIndex(row => row[teamNameIndex] === data.teamName);
         
         if (rowIndex !== -1) {
-          // 既存行を更新（例として、特定の列を更新するロジック）
-          // 実際にはスプレッドシートの列構成に合わせて調整が必要
           const range = `Events!K${rowIndex + 1}:P${rowIndex + 1}`;
           const updateValues = [[
             data.productName || '',
@@ -70,7 +67,6 @@ export async function POST(request: Request) {
           ]];
           await updateSheetRow(SPREADSHEET_ID, range, updateValues);
         } else {
-          // 見つからない場合は新規追加（簡易実装）
           const values = [[
             data.submittedAt,
             data.teamName,
@@ -96,8 +92,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error: any) {
-    console.error('Submit API Error:', error);
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    console.error('Submit API Error:', error.message);
+    // クライアントに詳細なエラーを返す（デバッグ用）
+    return NextResponse.json({ 
+      ok: false, 
+      error: error.message,
+      details: error.response?.data?.error?.message || 'No detailed error message available'
+    }, { status: 500 });
   }
 }
 
@@ -111,7 +112,6 @@ export async function GET() {
     const rows = await getSheetValues(SPREADSHEET_ID, 'Events!A:Z');
     if (!rows || rows.length === 0) return NextResponse.json([]);
     
-    // ヘッダーを除いてオブジェクト形式に変換
     const headers = rows[0];
     const data = rows.slice(1).map(row => {
       const obj: any = {};
@@ -123,7 +123,7 @@ export async function GET() {
     
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error('Submit GET API Error:', error);
+    console.error('Submit GET API Error:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

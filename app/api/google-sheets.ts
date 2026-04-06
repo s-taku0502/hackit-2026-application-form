@@ -3,20 +3,31 @@ import { google } from 'googleapis';
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
 async function getSheetsClient() {
+  const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY;
+
   // 環境変数が未設定の場合はnullを返す
-  if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
+  if (!clientEmail || !privateKey) {
     console.warn('Google Sheets credentials not configured. Using mock mode.');
     return null;
   }
 
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    },
-    scopes: SCOPES,
-  });
-  return google.sheets({ version: 'v4', auth });
+  try {
+    // 秘密鍵の改行コードを正しく処理する
+    const formattedKey = privateKey.replace(/\\n/g, '\n');
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: clientEmail,
+        private_key: formattedKey,
+      },
+      scopes: SCOPES,
+    });
+    return google.sheets({ version: 'v4', auth });
+  } catch (error) {
+    console.error('Failed to initialize Google Sheets client:', error);
+    throw error;
+  }
 }
 
 export async function appendToSheet(spreadsheetId: string, range: string, values: any[][]) {
@@ -28,7 +39,7 @@ export async function appendToSheet(spreadsheetId: string, range: string, values
   }
 
   try {
-    await sheets.spreadsheets.values.append({
+    const result = await sheets.spreadsheets.values.append({
       spreadsheetId,
       range,
       valueInputOption: 'RAW',
@@ -36,8 +47,12 @@ export async function appendToSheet(spreadsheetId: string, range: string, values
         values,
       },
     });
-  } catch (error) {
-    console.error('Error appending to sheet:', error);
+    return result;
+  } catch (error: any) {
+    console.error(`Error appending to sheet (${range}):`, error.message);
+    if (error.response && error.response.data) {
+      console.error('Detailed error response:', JSON.stringify(error.response.data));
+    }
     throw error;
   }
 }
@@ -56,8 +71,8 @@ export async function getSheetValues(spreadsheetId: string, range: string) {
       range,
     });
     return response.data.values || [];
-  } catch (error) {
-    console.error('Error getting sheet values:', error);
+  } catch (error: any) {
+    console.error(`Error getting sheet values (${range}):`, error.message);
     throw error;
   }
 }
@@ -71,7 +86,7 @@ export async function updateSheetRow(spreadsheetId: string, range: string, value
   }
 
   try {
-    await sheets.spreadsheets.values.update({
+    const result = await sheets.spreadsheets.values.update({
       spreadsheetId,
       range,
       valueInputOption: 'RAW',
@@ -79,8 +94,9 @@ export async function updateSheetRow(spreadsheetId: string, range: string, value
         values,
       },
     });
-  } catch (error) {
-    console.error('Error updating sheet row:', error);
+    return result;
+  } catch (error: any) {
+    console.error(`Error updating sheet row (${range}):`, error.message);
     throw error;
   }
 }
