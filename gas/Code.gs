@@ -80,7 +80,27 @@ function doGet(e) {
 
 /**
  * チーム申し込みデータを保存
- * メンバー情報を個別カラムに展開（member01_class, member01_number, member01_name, member01_furigana, member01_githubUrl, member01_gender ... member05_gender）
+ * Events シートのカラム順序（A～AS）:
+ * A: submittedAt
+ * B: projectName
+ * C: teamSize
+ * D: leaderName
+ * E: leaderEmail
+ * F: hasFirstYear
+ * G: teamDescription
+ * H: agreements
+ * I: allergy
+ * J-O: member01 (class, number, name, furigana, githubUrl, gender)
+ * P-U: member02 (class, number, name, furigana, githubUrl, gender)
+ * V-AA: member03 (class, number, name, furigana, githubUrl, gender)
+ * AB-AG: member04 (class, number, name, furigana, githubUrl, gender)
+ * AH-AM: member05 (class, number, name, furigana, githubUrl, gender)
+ * AN: productName
+ * AO: teamPassphrase
+ * AP: githubUrl
+ * AQ: githubUrlBackup
+ * AR: publicSite
+ * AS: publicSiteBackup
  */
 function saveEventData(data) {
   try {
@@ -89,21 +109,22 @@ function saveEventData(data) {
       return { ok: false, error: 'Events sheet not found' };
     }
 
-    // メンバー情報を個別カラムに展開
+    // メンバー情報を個別カラムに展開（最大5名）
     const memberColumns = [];
     for (let i = 1; i <= 5; i++) {
       const member = data.members && data.members[i - 1] ? data.members[i - 1] : {};
       memberColumns.push(
-        member.gradeClass || '',
-        member.studentId || '',
-        member.name || '',
-        member.furigana || '',
-        member.githubUrl || '',
-        member.gender || ''
+        member.gradeClass || '',      // class
+        member.studentId || '',       // number
+        member.name || '',            // name
+        member.furigana || '',        // furigana
+        member.githubUrl || '',       // githubUrl
+        member.gender || ''           // gender
       );
     }
 
-    const row = [
+    // 基本情報 (A-I)
+    const baseData = [
       data.submittedAt,
       data.projectName,
       data.teamSize,
@@ -113,8 +134,20 @@ function saveEventData(data) {
       data.teamDescription,
       JSON.stringify(data.agreements),
       JSON.stringify(data.allergy),
-      ...memberColumns,
     ];
+
+    // プロダクト情報 (AN-AS)
+    const productData = [
+      data.productName || '',
+      data.teamPassphrase || '',
+      data.githubUrl || '',
+      data.githubUrlBackup || '',
+      data.publicSite || '',
+      data.publicSiteBackup || '',
+    ];
+
+    // 全データを結合
+    const row = [...baseData, ...memberColumns, ...productData];
 
     sheet.appendRow(row);
     Logger.log('Event data saved successfully');
@@ -127,7 +160,21 @@ function saveEventData(data) {
 
 /**
  * 個人申し込みデータを保存
- * ふりがなフィールドを含む
+ * Personal シートのカラム順序（A～N）:
+ * A: submittedAt
+ * B: projectName
+ * C: gradeClass
+ * D: studentId
+ * E: name
+ * F: furigana
+ * G: gender
+ * H: leaderName
+ * I: leaderEmail
+ * J: hasHackathonExperience
+ * K: experienceDetail
+ * L: technologies
+ * M: agreements
+ * N: allergy
  */
 function savePersonalData(data) {
   try {
@@ -186,8 +233,8 @@ function updateTeamData(data) {
 
     if (rowIndex !== -1) {
       // 既存行を更新（プロダクト情報など）
-      // 列の位置は Events シートの構成に応じて調整
-      const range = sheet.getRange(rowIndex, 31, 1, 6); // AA列から6列分
+      // AN～AS列（列番号40～45）
+      const range = sheet.getRange(rowIndex, 40, 1, 6);
       range.setValues([[
         data.productName || '',
         data.teamPassphrase || '',
@@ -212,7 +259,7 @@ function updateTeamData(data) {
         );
       }
 
-      const row = [
+      const baseData = [
         data.submittedAt,
         data.teamName,
         '', // teamSize
@@ -222,7 +269,9 @@ function updateTeamData(data) {
         '', // teamDescription
         '', // agreements
         '', // allergy
-        ...memberColumns,
+      ];
+
+      const productData = [
         data.productName || '',
         data.teamPassphrase || '',
         data.githubUrl || '',
@@ -230,6 +279,8 @@ function updateTeamData(data) {
         data.publicSite || '',
         data.publicSiteBackup || '',
       ];
+
+      const row = [...baseData, ...memberColumns, ...productData];
       sheet.appendRow(row);
       Logger.log('Team data added as new row');
     }
