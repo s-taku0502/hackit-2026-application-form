@@ -197,6 +197,11 @@ export default function EventForm() {
             if (hasFuriFamily !== hasFuriGiven) return ` ${i + 1}人目のフリガナは姓と名の両方を入力してください。`;
         }
 
+        // 3人以上のチームで1年生を含まない場合はエラー
+        if (teamSize >= 3 && hasFirstYear === "no") {
+            return "新1年生を含んだチーム構成にしてください。";
+        }
+
         // determine effective leader name/email (support individual/open participation)
         const memberLeaderName = leaderIndex >= 0 ? (members[leaderIndex]?.familyName && members[leaderIndex]?.givenName ? `${members[leaderIndex].familyName}　${members[leaderIndex].givenName}` : "") : "";
         const team0Name = teamSize === 1 && members[0]?.familyName && members[0]?.givenName ? `${members[0].familyName}　${members[0].givenName}` : "";

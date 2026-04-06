@@ -88,19 +88,23 @@ function doGet(e) {
  * E: leaderEmail
  * F: hasFirstYear
  * G: teamDescription
- * H: agreements
- * I: allergy
- * J-O: member01 (class, number, name, furigana, githubUrl, gender)
- * P-U: member02 (class, number, name, furigana, githubUrl, gender)
- * V-AA: member03 (class, number, name, furigana, githubUrl, gender)
- * AB-AG: member04 (class, number, name, furigana, githubUrl, gender)
- * AH-AM: member05 (class, number, name, furigana, githubUrl, gender)
- * AN: productName
- * AO: teamPassphrase
- * AP: githubUrl
- * AQ: githubUrlBackup
- * AR: publicSite
- * AS: publicSiteBackup
+ * H: agreeCancel
+ * I: agreePrivacy
+ * J: agreeShare
+ * K: agreeLottery
+ * L: hasAllergy
+ * M: allergyDetail
+ * N-S: member01 (class, number, name, furigana, githubUrl, gender)
+ * T-Y: member02 (class, number, name, furigana, githubUrl, gender)
+ * Z-AE: member03 (class, number, name, furigana, githubUrl, gender)
+ * AF-AK: member04 (class, number, name, furigana, githubUrl, gender)
+ * AL-AQ: member05 (class, number, name, furigana, githubUrl, gender)
+ * AR: productName
+ * AS: teamPassphrase
+ * AT: githubUrl
+ * AU: githubUrlSub
+ * AV: publicSite
+ * AW: publicSiteSub
  */
 function saveEventData(data) {
   try {
@@ -123,7 +127,7 @@ function saveEventData(data) {
       );
     }
 
-    // 基本情報 (A-I)
+    // 基本情報 (A-M)
     const baseData = [
       data.submittedAt,
       data.projectName,
@@ -132,11 +136,15 @@ function saveEventData(data) {
       data.leaderEmail,
       data.hasFirstYear,
       data.teamDescription,
-      JSON.stringify(data.agreements),
-      JSON.stringify(data.allergy),
+      data.agreements.agreeCancel || false,
+      data.agreements.agreePrivacy || false,
+      data.agreements.agreeShare || false,
+      data.agreements.agreeLottery || false,
+      data.allergy.hasAllergy || '',
+      data.allergy.allergyDetail || '',
     ];
 
-    // プロダクト情報 (AN-AS)
+    // プロダクト情報 (AR-AW)
     const productData = [
       data.productName || '',
       data.teamPassphrase || '',
@@ -173,8 +181,12 @@ function saveEventData(data) {
  * J: hasHackathonExperience
  * K: experienceDetail
  * L: technologies
- * M: agreements
- * N: allergy
+ * M: agreeCancel
+ * N: agreePrivacy
+ * O: agreeShare
+ * P: agreeLottery
+ * Q: hasAllergy
+ * R: allergyDetail
  */
 function savePersonalData(data) {
   try {
@@ -182,6 +194,9 @@ function savePersonalData(data) {
     if (!sheet) {
       return { ok: false, error: 'Personal sheet not found' };
     }
+
+    // technologies は配列なので、カンマ区切りの文字列に変換
+    const technologiesStr = Array.isArray(data.technologies) ? data.technologies.join(', ') : '';
 
     const row = [
       data.submittedAt,
@@ -195,9 +210,13 @@ function savePersonalData(data) {
       data.leaderEmail,
       data.hasHackathonExperience,
       data.experienceDetail,
-      JSON.stringify(data.technologies),
-      JSON.stringify(data.agreements),
-      JSON.stringify(data.allergy),
+      technologiesStr,
+      data.agreements.agreeCancel || false,
+      data.agreements.agreePrivacy || false,
+      data.agreements.agreeShare || false,
+      data.agreements.agreeLottery || false,
+      data.allergy.hasAllergy || '',
+      data.allergy.allergyDetail || '',
     ];
 
     sheet.appendRow(row);
@@ -233,8 +252,8 @@ function updateTeamData(data) {
 
     if (rowIndex !== -1) {
       // 既存行を更新（プロダクト情報など）
-      // AN～AS列（列番号40～45）
-      const range = sheet.getRange(rowIndex, 40, 1, 6);
+      // AR～AW列（列番号44～49）
+      const range = sheet.getRange(rowIndex, 44, 1, 6);
       range.setValues([[
         data.productName || '',
         data.teamPassphrase || '',
@@ -267,8 +286,12 @@ function updateTeamData(data) {
         data.leaderEmail,
         '', // hasFirstYear
         '', // teamDescription
-        '', // agreements
-        '', // allergy
+        '', // agreeCancel
+        '', // agreePrivacy
+        '', // agreeShare
+        '', // agreeLottery
+        '', // hasAllergy
+        '', // allergyDetail
       ];
 
       const productData = [
