@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import useSettings from "../hooks/useSettings";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+// import { useQuery, useMutation } from "convex/react";
+// import { api } from "../../convex/_generated/api";
 
 export default function TeamsPage() {
     const [teamName, setTeamName] = useState("");
@@ -22,7 +22,16 @@ export default function TeamsPage() {
     const [authError, setAuthError] = useState("");
     const [authLoading, setAuthLoading] = useState(false);
 
-    const submitTeamMutation = useMutation(api.events.submitTeam);
+    // const submitTeamMutation = useMutation(api.events.submitTeam);
+    const submitTeamMutation = async (data: any) => {
+        const res = await fetch("/api/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "team_update", data }),
+        });
+        if (!res.ok) throw new Error("Failed to update team");
+        return res.json();
+    };
 
     function onSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -42,7 +51,14 @@ export default function TeamsPage() {
             .catch((err) => console.error(err));
     }
 
-    const events = useQuery(api.events.listEvents) || [];
+    // const events = useQuery(api.events.listEvents) || [];
+    const [events, setEvents] = useState<any[]>([]);
+    useEffect(() => {
+        fetch("/api/submit")
+            .then(res => res.json())
+            .then(data => setEvents(data))
+            .catch(err => console.error(err));
+    }, []);
     // events から teamName があるものを抽出して重複を排除した配列を作る
     const teams = Array.from(
         new Map(

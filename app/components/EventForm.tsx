@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+// import { useMutation } from "convex/react";
+// import { api } from "../../convex/_generated/api";
 import useSettings from "../hooks/useSettings";
 
 type Member = { gradeClass: string; studentId: string; familyName: string; givenName: string; furiganaFamily?: string; furiganaGiven?: string; gender?: string; githubUrl?: string };
@@ -41,8 +41,26 @@ export default function EventForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
 
-    const submitEventMutation = useMutation(api.events.submitEvent);
-    const submitPersonalMutation = useMutation(api.events.submitPersonal);
+    // const submitEventMutation = useMutation(api.events.submitEvent);
+    // const submitPersonalMutation = useMutation(api.events.submitPersonal);
+    const submitEventMutation = async (data: any) => {
+        const res = await fetch("/api/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "event", data }),
+        });
+        if (!res.ok) throw new Error("Failed to submit event");
+        return res.json();
+    };
+    const submitPersonalMutation = async (data: any) => {
+        const res = await fetch("/api/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "personal", data }),
+        });
+        if (!res.ok) throw new Error("Failed to submit personal");
+        return res.json();
+    };
     const settings = useSettings();
     const [now, setNow] = useState<Date>(new Date());
 

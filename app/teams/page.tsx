@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import useSettings from "../hooks/useSettings";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+// import { useQuery, useMutation } from "convex/react";
+// import { api } from "../../convex/_generated/api";
 
 export default function TeamsCreatePage() {
     const settings = useSettings();
@@ -70,8 +70,25 @@ export default function TeamsCreatePage() {
         );
     }
 
-    const submitTeamMutation = useMutation(api.events.submitTeam);
-    const events = useQuery(api.events.listEvents) || [];
+    // const submitTeamMutation = useMutation(api.events.submitTeam);
+    const submitTeamMutation = async (data: any) => {
+        const res = await fetch("/api/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "team_update", data }),
+        });
+        if (!res.ok) throw new Error("Failed to update team");
+        return res.json();
+    };
+
+    // const events = useQuery(api.events.listEvents) || [];
+    const [events, setEvents] = useState<any[]>([]);
+    useEffect(() => {
+        fetch("/api/submit")
+            .then(res => res.json())
+            .then(data => setEvents(data))
+            .catch(err => console.error(err));
+    }, []);
     const teams = Array.from(
         new Map(
             events.filter((e: any) => e.teamName && e.teamName.trim() !== "").map((e: any) => [e.teamName, e])
