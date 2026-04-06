@@ -79,8 +79,10 @@ export default function EventForm() {
 
     const appStart = parseSettingDate(settings, "eventApplicationStart");
     const appEnd = parseSettingDate(settings, "eventApplicationEnd");
-    const beforeStart = appStart && now < appStart;
-    const afterEnd = appEnd && now > appEnd;
+    // 開発モード（isDevelopment=true）の場合、期間制限を無視
+    const isDevelopment = (settings as any)?.isDevelopment === true;
+    const beforeStart = !isDevelopment && appStart && now < appStart;
+    const afterEnd = !isDevelopment && appEnd && now > appEnd;
 
     function renderCountdown(target: Date) {
         const diff = Math.max(0, target.getTime() - now.getTime());
@@ -398,6 +400,9 @@ export default function EventForm() {
         <form onSubmit={onSubmit} className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header Section */}
             <div className="mb-8 text-center">
+                {isDevelopment && (
+                    <div className="mb-2 text-sm text-blue-700 font-semibold">🔧 開発モード: 申し込み期間の制限が無視されています</div>
+                )}
                 {settings && (settings as any).enabled === false && (
                     <div className="mb-2 text-sm text-amber-700">開発環境: 運営設定は無効です</div>
                 )}

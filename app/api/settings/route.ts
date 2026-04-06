@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const GAS_WEBAPP_URL = process.env.GAS_WEBAPP_URL;
+const DEV_MODE = process.env.DEV_MODE === '1';
 
 // 日本時間（JST）のタイムゾーンオフセット（+9時間）
 const JST_OFFSET = 9 * 60 * 60 * 1000;
@@ -14,11 +15,26 @@ function parseJSTDate(isoString: string): Date {
 }
 
 export async function GET() {
-  // 開発環境では、環境変数が設定されていない場合、モックデータを返す
-  if (process.env.NODE_ENV !== 'production' && !GAS_WEBAPP_URL) {
-    console.log('Development mode: Returning mock settings.');
+  // 開発モード（DEV_MODE=1）では、常にフォームを表示できるようにする
+  if (DEV_MODE) {
+    console.log('Development mode (DEV_MODE=1): Bypassing application period restrictions');
     return NextResponse.json({
       enabled: true,
+      isDevelopment: true,
+      // 開発環境では、期間制限を無視するため、非常に広い範囲を設定
+      eventApplicationStart: '2000-01-01T00:00:00.000Z',
+      eventApplicationEnd: '2099-12-31T23:59:59.000Z',
+      teamRegistrationEnd: '2099-12-31T23:59:59.000Z',
+      submissionDeadline: '2099-12-31T23:59:59.000Z',
+    });
+  }
+
+  // 本番環境（DEV_MODE=0 または未設定）では、環境変数がない場合はモックデータを返す
+  if (process.env.NODE_ENV !== 'production' && !GAS_WEBAPP_URL) {
+    console.log('Development environment without GAS_WEBAPP_URL: Returning mock settings.');
+    return NextResponse.json({
+      enabled: true,
+      isDevelopment: false,
       eventApplicationStart: '2026-01-01T00:00:00.000Z',
       eventApplicationEnd: '2026-12-31T23:59:59.000Z',
       teamRegistrationEnd: '2026-12-31T23:59:59.000Z',
@@ -62,6 +78,7 @@ export async function GET() {
       settings.submissionDeadline = new Date(settings.submissionDeadline).toISOString();
     }
 
+    settings.isDevelopment = false;
     return NextResponse.json(settings);
 
   } catch (error: any) {
